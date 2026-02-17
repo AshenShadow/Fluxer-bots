@@ -1,0 +1,22 @@
+{% extends 'jesters/base.html' %}
+
+{% block content %}
+<h1>Create New Jester</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="user_id" value="{{ user_id }}">
+
+    <label for="name">Character Name</label>
+    <input type="text" name="name" id="name" required placeholder="Name">
+
+    <label for="avatar">Avatar Image</label>
+    <input type="file" name="avatar" id="avatar" accept="image/*" required>
+
+    <label for="prefix">Trigger Prefix</label>
+    <input type="text" name="prefix" id="prefix" required placeholder="Jester">
+    <small>You will trigger this bot by typing <code>Prefix: Your Message</code></small>
+
+    <button type="submit">Create Jester</button>
+</form>
+{% endblock %}

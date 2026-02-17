@@ -1,0 +1,32 @@
+{% extends 'jesters/base.html' %}
+
+{% block content %}
+<header style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>Your Jesters</h1>
+    <a href="/create/?user_id={{ user_id }}" role="button">Create New Jester</a>
+</header>
+
+<hr>
+
+{% if jesters %}
+{% for jester in jesters %}
+<div class="jester-card">
+    {% if jester.avatar %}
+    <img src="{{ jester.avatar.url }}" alt="{{ jester.name }}" class="jester-avatar">
+    {% else %}
+    <div class="jester-avatar" style="background: #333; display: flex; align-items: center; justify-content: center;">?
+    </div>
+    {% endif %}
+
+    <div class="jester-info">
+        <h3>{{ jester.name }}</h3>
+        <p>Trigger: <code>{{ jester.prefix }}: message</code></p>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<article>
+    <p>No jesters found. Create one to get started!</p>
+</article>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'jesters/base.html' %}
+
+{% block content %}
+<main class="container">
+    <hgroup>
+        <h1>Jester Browser</h1>
+        <h2>All registered Jesters in the database</h2>
+    </hgroup>
+
+    <div class="grid">
+        {% for jester in jesters %}
+        <article>
+            <header>
+                <strong>{{ jester.name }}</strong>
+            </header>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if jester.discord_avatar_url %}
+                <img src="{{ jester.discord_avatar_url }}" alt="{{ jester.name }}"
+                    style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
+                {% elif jester.avatar %}
+                <img src="{{ jester.avatar.url }}" alt="{{ jester.name }}"
+                    style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                <div style="width: 64px; height: 64px; background: #333; border-radius: 50%;"></div>
+                {% endif %}
+                <div>
+                    <p>Prefix: <code>{{ jester.prefix }}</code></p>
+                    <small>User ID: {{ jester.user_id }}</small>
+                </div>
+            </div>
+            {% if jester.discord_avatar_url %}
+            <footer>
+                <small>Starting from CDN</small>
+            </footer>
+            {% endif %}
+        </article>
+        {% empty %}
+        <p>No jesters found.</p>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}

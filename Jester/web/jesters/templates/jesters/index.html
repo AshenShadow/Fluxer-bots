@@ -1,0 +1,17 @@
+{% extends 'jesters/base.html' %}
+
+{% block content %}
+<article>
+    <header>
+        <h1>Welcome to Jester</h1>
+    </header>
+    <p>Manage your proxy characters easily.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="user_id">Enter your Fluxer User ID to continue:</label>
+        <input type="text" name="user_id" id="user_id" placeholder="e.g. 123456789" required>
+        <button type="submit" class="contrast">Enter Dashboard</button>
+    </form>
+</article>
+{% endblock %}
