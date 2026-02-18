@@ -1,5 +1,6 @@
 from ninja import Router, Schema, UploadedFile, File, Form
-from typing import List
+from ninja.errors import HttpError
+from typing import List, Optional
 from .models import Jester
 from django.conf import settings
 
@@ -9,35 +10,48 @@ class JesterSchema(Schema):
     id: int
     name: str
     prefix: str
-    avatar_url: str
-    discord_avatar_url: str = None
+    avatar_url: Optional[str] = None
+    discord_avatar_url: Optional[str] = None
     user_id: str
 
-    @staticmethod
-    def resolve_avatar_url(obj):
-        if obj.discord_avatar_url:
-            return obj.discord_avatar_url
-        if obj.avatar:
-            return obj.avatar.url
-        return ""
-
-@router.get("/{user_id}", response=List[JesterSchema])
+@router.get("/user/{user_id}", response=List[dict])
 def list_jesters(request, user_id: str):
-    return Jester.objects.filter(user_id=user_id)
+    jesters = []
+    for j in Jester.objects.filter(user_id=user_id):
+        jesters.append({
+            "id": j.id,
+            "name": j.name,
+            "prefix": j.prefix,
+            "user_id": j.user_id,
+            "avatar_url": j.avatar_url,
+            "local_avatar_url": j.avatar.url if j.avatar else None,
+            "discord_avatar_url": j.discord_avatar_url
+        })
+    return jesters
 
 @router.post("/", response=JesterSchema)
 def create_jester(request, 
                  name: str = Form(...), 
                  prefix: str = Form(...), 
                  user_id: str = Form(...),
-                 avatar: UploadedFile = File(...)):
+                 avatar: UploadedFile = File(None)):
     
-    jester = Jester.objects.create(
+    print(f"Creating Jester: Name={name}, Prefix={prefix}, User={user_id}, Avatar={avatar}")
+    
+    # Check for duplicate prefix for this user
+    if Jester.objects.filter(user_id=user_id, prefix=prefix).exists():
+        raise HttpError(400, "Prefix error: Prefix already exists.")
+
+    jester = Jester(
         name=name,
         prefix=prefix,
-        user_id=user_id,
-        avatar=avatar
+        user_id=user_id
     )
+    if avatar:
+        print("Avatar found, assigning.")
+        jester.avatar = avatar
+    jester.save()
+    print(f"Jester saved: ID={jester.id}")
     return jester
 
 class JesterUpdateSchema(Schema):
