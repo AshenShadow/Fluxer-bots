@@ -20,141 +20,121 @@ const tupperCache = new Map();
 const uploadedAvatarUrls = new Map();
 
 client.on(Events.Ready, () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    // client.user might be undefined in some versions of Fluxer if not fully ready, but typically it is.
+    console.log(`Logged in as ${client.user ? client.user.tag : 'Bot'}!`);
 });
+
+// Helper to send embeds
+const sendEmbed = (message, title, description, color = '#9b59b6') => {
+    const embed = new EmbedBuilder()
+        .setTitle(title)
+        .setDescription(description)
+        .setColor(color)
+        .setFooter({ text: 'Fluxer Jester Bot' });
+    return message.reply({ embeds: [embed] });
+};
 
 client.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
 
     if (message.content === 'j!ping') {
-        await message.reply('Pong!');
-        return;
+        return sendEmbed(message, '🏓 Pong!', 'The bot is active and listening.');
     }
 
     // Command: j!create or j!c
-    // Strict match: j!create or j!c followed by space or end of string
     if (/^j!(create|c)(\s|$)/i.test(message.content)) {
         const argsString = message.content.replace(/^j!(create|c)\s*/i, '').trim();
 
         if (!argsString) {
-            return message.reply("**Jester Creation**\nUsage: `j!create <Name> <Prefix:msg>`\nExample: `j!c \"My Jester\" MJ:msg`\n\nYou can attach an image to set the avatar!");
+            return sendEmbed(message, '🎭 Create a Jester', "Usage: `j!create <Name> <Prefix:msg>`\nExample: `j!c \"My Jester\" MJ:msg`\n\nYou can attach an image to set the avatar!");
         }
 
         let name = '';
         let trigger = '';
 
-        // Manually parse to detect unbalanced quotes
         if (argsString.startsWith('"')) {
             const closingQuoteIndex = argsString.indexOf('"', 1);
             if (closingQuoteIndex === -1) {
-                return message.reply("Name Error: Name has no end (missing closing quote).");
+                return sendEmbed(message, '❌ Error', "Name has no end (missing closing quote).", '#f04747');
             }
             name = argsString.substring(1, closingQuoteIndex);
             trigger = argsString.substring(closingQuoteIndex + 1).trim();
 
             if (!trigger) {
-                return message.reply("Invalid format. Missing prefix trigger.\nUsage: `j!c <Name> <Prefix:msg>`");
+                return sendEmbed(message, '❌ Error', "Missing prefix trigger.\nUsage: `j!c <Name> <Prefix:msg>`", '#f04747');
             }
-            // Check for too many arguments (spaces in the remaining part)
-            // We expect strictly one token for the prefix trigger
             if (trigger.includes(' ')) {
-                return message.reply("Error: Too many arguments. Usage: `j!c <Name> <Prefix:msg>`");
+                return sendEmbed(message, '❌ Error', "Too many arguments. Usage: `j!c <Name> <Prefix:msg>`", '#f04747');
             }
 
         } else {
-            // No quotes, split by space
             const parts = argsString.split(/\s+/);
             if (parts.length > 2) {
-                return message.reply("Error: Too many arguments. Usage: `j!c <Name> <Prefix:msg>`. If your name has spaces, use quotes.");
+                return sendEmbed(message, '❌ Error', "Too many arguments.\nUsage: `j!c <Name> <Prefix:msg>`\nIf your name has spaces, use quotes.", '#f04747');
             }
             name = parts[0];
             trigger = parts[1];
         }
 
         if (!name || !trigger) {
-            return message.reply("Invalid format. Please provide a name and a prefix trigger.\nUsage: `j!c <Name> <Prefix:msg>`");
+            return sendEmbed(message, '❌ Error', "Please provide a name and a prefix trigger.\nUsage: `j!c <Name> <Prefix:msg>`", '#f04747');
         }
 
-        // Validate trigger format: Prefix + Separator + msg
-        // Regex: (prefix) (separator) (msg)
-        // Separator is any special char: [^a-zA-Z0-9\s]
         const triggerMatch = trigger.match(/^(.+?)([^a-zA-Z0-9\s])(msg)$/i);
 
         if (!triggerMatch) {
-            // Check if it's missing the 'msg' part specifically or the separator
             if (!trigger.toLowerCase().endsWith('msg')) {
-                return message.reply("Prefix Error: The trigger must end with 'msg' (e.g. `Prefix:msg`).");
+                return sendEmbed(message, '❌ Prefix Error', "The trigger must end with 'msg' (e.g. `Prefix:msg`).", '#f04747');
             }
-            return message.reply("Invalid prefix format. It must contain a separator (like `:`, `-`, `.`, etc) followed by `msg`.\nExample: `MJ:msg`, `MJ-text` is NOT valid (must be msg). Wait, user said ONLY msg.");
+            return sendEmbed(message, '❌ Prefix Error', "Invalid format. It must contain a separator (like `:`, `-`) followed by `msg`.\nExample: `MJ:msg`", '#f04747');
         }
 
         const prefix = triggerMatch[1]; // The part before separator
 
-        // Prepare form data
         const form = new FormData();
         form.append('name', name);
         form.append('prefix', prefix);
-        form.append('user_id', message.author.id); // Set owner to command sender
+        form.append('user_id', message.author.id);
 
         const attachment = message.attachments.first();
-        console.log(`[DEBUG] Attachments info: Size=${message.attachments.size}, Type=${message.attachments.constructor.name}`);
-        if (message.attachments.size > 0) {
-            const firstKey = message.attachments.keys().next().value;
-            console.log('[DEBUG] First attachment:', message.attachments.get(firstKey));
-        }
-
         const isImage = attachment && (
             (attachment.contentType && attachment.contentType.startsWith('image/')) ||
             (attachment.url && /\.(png|jpg|jpeg|webp|gif)(\?|$)/i.test(attachment.url))
         );
 
         if (isImage) {
-            console.log(`[DEBUG] Valid image found: ${attachment.url}`);
             try {
                 const imageResponse = await axios.get(attachment.url, { responseType: 'stream' });
-                console.log(`[DEBUG] Downloaded image stream. Appending to form.`);
                 form.append('avatar', imageResponse.data, attachment.name);
             } catch (err) {
-                console.error("[DEBUG] Failed to download attachment:", err);
-                return message.reply("Failed to download attached image.");
+                return sendEmbed(message, '❌ Error', "Failed to download attached image.", '#f04747');
             }
-        } else {
-            console.log("[DEBUG] No valid image attachment found (Check content-type or extension).");
-            if (attachment) console.log(`[DEBUG] Attachment details: Type=${attachment.contentType}, URL=${attachment.url}`);
         }
 
         try {
             const response = await axios.post(`${API_URL}/`, form, {
-                headers: {
-                    ...form.getHeaders()
-                }
+                headers: { ...form.getHeaders() }
             });
 
-            // Invalidate cache for this user so valid jester list is fetched next time
             tupperCache.delete(message.author.id);
+            return sendEmbed(message, '✅ Jester Created', `**Name:** ${response.data.name}\n**Prefix:** \`${response.data.prefix}\``, '#43b581');
 
-            return message.reply(`Successfully created Jester **${response.data.name}** with prefix \`${response.data.prefix}\`!`);
         } catch (error) {
             console.error('Creation failed:', error.response ? error.response.data : error.message);
             let errorMsg = "Please try again.";
-
             if (error.response && error.response.data && error.response.data.detail) {
                 errorMsg = typeof error.response.data.detail === 'string'
                     ? error.response.data.detail
                     : JSON.stringify(error.response.data.detail);
             }
-
-            return message.reply(`Failed to create Jester. ${errorMsg}`);
+            return sendEmbed(message, '❌ Creation Failed', errorMsg, '#f04747');
         }
     }
 
+    // Command: j!delete
+    if (/^j!(delete|del|d)(\s|$)/i.test(message.content)) {
+        let queryName = message.content.replace(/^j!(delete|del|d)\s*/i, '').trim();
 
-    // Command: j!info or j!i
-    // Strict match: j!info or j!i followed by space or end of string
-    if (/^j!(info|i)(\s|$)/i.test(message.content)) {
-        let queryName = message.content.replace(/^j!(info|i)\s*/i, '').trim();
-
-        // Handle quotes if present (strip surrounding quotes)
         if (queryName.startsWith('"') && queryName.endsWith('"')) {
             queryName = queryName.slice(1, -1);
         } else if (queryName.startsWith("'") && queryName.endsWith("'")) {
@@ -162,10 +142,9 @@ client.on(Events.MessageCreate, async (message) => {
         }
 
         if (!queryName) {
-            return message.reply(`Usage: \`j!info <Jester Name>\`\nExample: \`j!i "My Jester"\` or \`j!info MyJester\``);
+            return sendEmbed(message, '🗑️ Delete Jester', "Usage: `j!delete <Name>`\nExample: `j!d \"My Jester\"`");
         }
 
-        // Fetch jesters for this user if not cached
         let jesters = tupperCache.get(message.author.id);
         if (!jesters) {
             try {
@@ -174,13 +153,68 @@ client.on(Events.MessageCreate, async (message) => {
                 tupperCache.set(message.author.id, jesters);
                 setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
             } catch (error) {
-                console.error('Failed to fetch jesters for info:', error.message);
-                return message.reply("Failed to fetch your Jesters. Please try again later.");
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters. Please try again later.", '#f04747');
             }
         }
 
         if (!jesters || jesters.length === 0) {
-            return message.reply("You don't have any Jesters yet.");
+            return sendEmbed(message, '❌ Error', "You don't have any Jesters to delete.", '#f04747');
+        }
+
+        const target = queryName.toLowerCase();
+        const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
+
+        if (exactMatch) {
+            try {
+                await axios.delete(`${API_URL}/${exactMatch.id}`);
+                tupperCache.delete(message.author.id);
+                return sendEmbed(message, '🗑️ Jester Deleted', `Successfully deleted **${exactMatch.name}**.`, '#f04747');
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to delete Jester. Please try again.", '#f04747');
+            }
+        }
+
+        const candidates = jesters.filter(j => {
+            const name = j.name.toLowerCase();
+            return name.includes(target) || levenshteinDistance(name, target) <= 2;
+        });
+
+        if (candidates.length > 0) {
+            const similarNames = [...new Set(candidates.map(c => c.name))].map(n => `\`${n}\``).join(', ');
+            return sendEmbed(message, '🔍 Not Found', `Jester "**${queryName}**" not found.\nDid you mean: ${similarNames}?`, '#f04747');
+        }
+
+        return sendEmbed(message, '❌ Not Found', `Jester "**${queryName}**" does not exist.`, '#f04747');
+    }
+
+    // Command: j!info or j!i
+    if (/^j!(info|i)(\s|$)/i.test(message.content)) {
+        let queryName = message.content.replace(/^j!(info|i)\s*/i, '').trim();
+
+        if (queryName.startsWith('"') && queryName.endsWith('"')) {
+            queryName = queryName.slice(1, -1);
+        } else if (queryName.startsWith("'") && queryName.endsWith("'")) {
+            queryName = queryName.slice(1, -1);
+        }
+
+        if (!queryName) {
+            return sendEmbed(message, 'ℹ️ Jester Info', "Usage: `j!info <Name>`\nExample: `j!i \"My Jester\"`");
+        }
+
+        let jesters = tupperCache.get(message.author.id);
+        if (!jesters) {
+            try {
+                const response = await axios.get(`${API_URL}/user/${message.author.id}`);
+                jesters = response.data;
+                tupperCache.set(message.author.id, jesters);
+                setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters.", '#f04747');
+            }
+        }
+
+        if (!jesters || jesters.length === 0) {
+            return sendEmbed(message, 'ℹ️ Info', "You don't have any Jesters yet.");
         }
 
         const target = queryName.toLowerCase();
@@ -189,9 +223,9 @@ client.on(Events.MessageCreate, async (message) => {
         if (exactMatch) {
             const embed = new EmbedBuilder()
                 .setTitle(exactMatch.name)
-                .addFields(
-                    { name: 'Prefix', value: `\`${exactMatch.prefix}\``, inline: true }
-                );
+                .setDescription(`**Prefix:** \`${exactMatch.prefix}\`\n**ID:** \`${exactMatch.id}\``)
+                .setColor('#9b59b6')
+                .setFooter({ text: 'Fluxer Jester Bot' });
 
             if (exactMatch.discord_avatar_url) {
                 embed.setThumbnail(exactMatch.discord_avatar_url);
@@ -201,37 +235,40 @@ client.on(Events.MessageCreate, async (message) => {
                     : `${API_URL.replace('/api/jesters', '')}${exactMatch.avatar_url}`;
                 embed.setThumbnail(avatarUrl);
             }
-
             return message.reply({ embeds: [embed] });
         }
 
-        // No exact match, search for similarities
         const candidates = jesters.filter(j => {
             const name = j.name.toLowerCase();
             return name.includes(target) || levenshteinDistance(name, target) <= 2;
         });
 
         if (candidates.length > 0) {
-            const similarNames = [...new Set(candidates.map(c => c.name))].join(', ');
-            return message.reply(`Jester doesn't exist. Similar Jester(s) found: ${similarNames}`);
+            const similarNames = [...new Set(candidates.map(c => c.name))].map(n => `\`${n}\``).join(', ');
+            return sendEmbed(message, '🔍 Not Found', `Did you mean: ${similarNames}?`, '#f04747');
         }
 
-        return message.reply("Jester doesn't exist.");
+        return sendEmbed(message, '❌ Not Found', `Jester "${queryName}" doesn't exist.`, '#f04747');
     }
 
     // Command: j!help or j!h
     if (/^j!(help|h)(\s|$)/i.test(message.content)) {
         const helpEmbed = new EmbedBuilder()
-            .setTitle("Jester Bot Help")
-            .setDescription("Here are the available commands:")
+            .setTitle("🎭 Jester Bot Help")
+            .setDescription("Manage your roleplay proxies easily.")
+            .setColor('#9b59b6')
             .addFields(
                 {
-                    name: '🎭 Create a Jester',
-                    value: '`j!create <Name> <Prefix:msg>`\nExample: `j!c "My Jester" MJ:msg`\n*(Attach an image to set avatar)*'
+                    name: '✨ Create',
+                    value: '`j!create <Name> <Prefix:msg>`\nExample: `j!c "My Char" MC:msg`'
                 },
                 {
-                    name: 'ℹ️ Jester Info',
-                    value: '`j!info <Name>`\nExample: `j!i "My Jester"`'
+                    name: 'ℹ️ Info',
+                    value: '`j!info <Name>`'
+                },
+                {
+                    name: '🗑️ Delete',
+                    value: '`j!delete <Name>`'
                 },
                 {
                     name: '❓ Help',
@@ -243,10 +280,11 @@ client.on(Events.MessageCreate, async (message) => {
         return message.reply({ embeds: [helpEmbed] });
     }
 
-    // Catch-all for unknown j! commands
     if (message.content.toLowerCase().startsWith('j!')) {
-        return message.reply("Unknown command.");
+        return sendEmbed(message, '❓ Unknown Command', "Type `j!help` for a list of commands.", '#f04747');
     }
+
+    // ... Proxy logic remains unchanged ...
 
     // Fetch jesters for this user
     let jesters = tupperCache.get(message.author.id);
@@ -380,15 +418,45 @@ client.on(Events.MessageCreate, async (message) => {
             console.log(`Final avatar URL sent to webhook: ${avatarUrl}`);
 
             // Send as Jester using direct REST call to ensure params are passed correctly
-            await client.rest.post(Routes.webhookExecute(webhook.id, webhook.token), {
-                body: {
-                    username: matchedJester.name,
-                    avatar_url: avatarUrl || undefined,
-                    content: innerContent
-                },
-                auth: false // Webhook execution doesn't use bot token auth
-            });
+            // Prepare webhook body
+            const webhookBody = {
+                username: matchedJester.name,
+                avatar_url: avatarUrl || undefined,
+                content: innerContent
+            };
 
+            // Handle Replies
+            // Fluxer uses 'messageReference' property which contains snake_case keys as seen in logs
+            const ref = message.messageReference || message.reference;
+
+            if (ref) {
+                const msgId = ref.messageId || ref.message_id;
+                const guildId = ref.guildId || ref.guild_id;
+                const channelId = ref.channelId || ref.channel_id;
+
+                if (msgId) {
+                    webhookBody.message_reference = {
+                        message_id: msgId,
+                        guild_id: guildId,
+                        channel_id: channelId,
+                        fail_if_not_exists: false
+                    };
+                }
+            }
+
+            // Send as Jester using direct REST call
+            console.log('[DEBUG v3.5] Final Webhook Body:', JSON.stringify(webhookBody, null, 2));
+            try {
+                // Force wait=true to get the message object back
+                const route = Routes.webhookExecute(webhook.id, webhook.token) + '?wait=true';
+                const response = await client.rest.post(route, {
+                    body: webhookBody,
+                    auth: false
+                });
+                console.log('[DEBUG v3.5] Webhook executed successfully. Response:', JSON.stringify(response, null, 2));
+            } catch (webhookErr) {
+                console.error('[DEBUG v3.5] Webhook execution failed:', webhookErr);
+            }
             // Delete original message
             try {
                 await message.delete();
@@ -403,6 +471,7 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 client.login(process.env.FLUXER_BOT_TOKEN);
+console.log('Jester Bot v3.5 Starting...');
 
 function levenshteinDistance(a, b) {
     if (a.length === 0) return b.length;

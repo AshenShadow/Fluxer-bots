@@ -1,22 +1,141 @@
 {% extends 'jesters/base.html' %}
 
+{% block styles %}
+.create-container {
+max-width: 600px;
+margin: 0 auto;
+}
+
+.create-card {
+background: var(--bg-secondary);
+padding: 2.5rem;
+border-radius: var(--radius-lg);
+border: 1px solid #2b2d31;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-group {
+margin-bottom: 2rem;
+}
+
+.form-hint {
+display: block;
+color: var(--text-secondary);
+font-size: 0.85rem;
+margin-top: 0.5rem;
+}
+
+.preview-avatar {
+width: 100px;
+height: 100px;
+border-radius: 50%;
+background-color: var(--bg-tertiary);
+border: 2px dashed #2b2d31;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 1rem;
+overflow: hidden;
+}
+
+.preview-avatar img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+{% endblock %}
+
 {% block content %}
-<h1>Create New Jester</h1>
+<div id="createApp" class="create-container" v-cloak>
+    <div class="page-header">
+        <h1>Create a New Jester</h1>
+        <a :href="'/dashboard/?user_id=' + userId" class="btn btn-outline">Cancel</a>
+    </div>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="user_id" value="{{ user_id }}">
+    <div class="create-card">
+        <form method="post" enctype="multipart/form-data" @submit="handleSubmit">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" :value="userId">
 
-    <label for="name">Character Name</label>
-    <input type="text" name="name" id="name" required placeholder="Name">
+            <div class="form-group">
+                <label for="name">Jester Name</label>
+                <input type="text" v-model="name" name="name" id="name" placeholder="e.g. My Awesome Character"
+                    required>
+                <span class="form-hint">The name displayed when the bot proxies your message.</span>
+            </div>
 
-    <label for="avatar">Avatar Image</label>
-    <input type="file" name="avatar" id="avatar" accept="image/*" required>
+            <div class="form-group">
+                <label for="prefix">Trigger Prefix</label>
+                <input type="text" v-model="prefix" @input="sanitizePrefix" name="prefix" id="prefix"
+                    placeholder="e.g. mychar" required>
+                <span class="form-hint">
+                    Type <code>[[ prefix ]]: your message</code> to proxy.
+                </span>
+            </div>
 
-    <label for="prefix">Trigger Prefix</label>
-    <input type="text" name="prefix" id="prefix" required placeholder="Jester">
-    <small>You will trigger this bot by typing <code>Prefix: Your Message</code></small>
+            <div class="form-group">
+                <label for="avatar">Avatar</label>
+                <div class="preview-avatar" :style="previewStyle">
+                    <img v-if="previewUrl" :src="previewUrl" alt="Preview">
+                    <span v-else style="font-size: 2rem; color: #444;">?</span>
+                </div>
+                <input type="file" @change="handleFileUpload" name="avatar" id="avatar" accept="image/*" required>
+                <span class="form-hint">Upload an image to set as the profile picture.</span>
+            </div>
 
-    <button type="submit">Create Jester</button>
-</form>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" :disabled="!isValid">
+                Create Jester
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        data() {
+            return {
+                userId: "{{ user_id }}",
+                name: '',
+                prefix: '',
+                previewUrl: null
+            }
+        },
+        computed: {
+            previewStyle() {
+                return this.previewUrl ? { border: '2px solid var(--accent-primary)' } : {};
+            },
+            isValid() {
+                // Ensure required fields are filled (HTML required attr handles mostly, but good for button state)
+                return this.name && this.prefix && this.previewUrl;
+            }
+        },
+        methods: {
+            sanitizePrefix() {
+                this.prefix = this.prefix.replace(/\s+/g, '');
+            },
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.previewUrl = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    this.previewUrl = null;
+                }
+            },
+            handleSubmit(e) {
+                // Allow default form submission
+                // We rely on standard POST handling for file uploads
+                if (!this.isValid) {
+                    e.preventDefault();
+                }
+            }
+        }
+    }).mount('#createApp');
+</script>
 {% endblock %}

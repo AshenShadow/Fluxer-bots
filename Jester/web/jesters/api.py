@@ -29,6 +29,21 @@ def list_jesters(request, user_id: str):
         })
     return jesters
 
+@router.get("/all", response=List[dict])
+def list_all_jesters(request):
+    jesters = []
+    for j in Jester.objects.all():
+        jesters.append({
+            "id": j.id,
+            "name": j.name,
+            "prefix": j.prefix,
+            "user_id": j.user_id,
+            "avatar_url": j.avatar_url,
+            "local_avatar_url": j.avatar.url if j.avatar else None,
+            "discord_avatar_url": j.discord_avatar_url
+        })
+    return jesters
+
 @router.post("/", response=JesterSchema)
 def create_jester(request, 
                  name: str = Form(...), 
@@ -63,3 +78,11 @@ def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
     jester.discord_avatar_url = payload.discord_avatar_url
     jester.save()
     return jester
+@router.delete("/{jester_id}", response={204: None})
+def delete_jester(request, jester_id: int):
+    try:
+        jester = Jester.objects.get(id=jester_id)
+        jester.delete()
+        return 204, None
+    except Jester.DoesNotExist:
+        raise HttpError(404, "Jester not found")

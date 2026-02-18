@@ -1,42 +1,77 @@
 {% extends 'jesters/base.html' %}
 
 {% block content %}
-<main class="container">
+<main id="browseApp" class="container" v-cloak>
     <hgroup>
         <h1>Jester Browser</h1>
         <h2>All registered Jesters in the database</h2>
     </hgroup>
 
-    <div class="grid">
-        {% for jester in jesters %}
-        <article>
+    <div v-if="loading" style="text-align:center; padding: 2rem; color: var(--text-secondary);">
+        Loading public directory...
+    </div>
+
+    <div v-else class="grid">
+        <article v-for="jester in jesters" :key="jester.id">
             <header>
-                <strong>{{ jester.name }}</strong>
+                <strong>[[ jester.name ]]</strong>
             </header>
             <div style="display: flex; gap: 1rem; align-items: center;">
-                {% if jester.discord_avatar_url %}
-                <img src="{{ jester.discord_avatar_url }}" alt="{{ jester.name }}"
-                    style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
-                {% elif jester.avatar %}
-                <img src="{{ jester.avatar.url }}" alt="{{ jester.name }}"
-                    style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
-                {% else %}
-                <div style="width: 64px; height: 64px; background: #333; border-radius: 50%;"></div>
-                {% endif %}
+
+                <img v-if="getAvatar(jester)" :src="getAvatar(jester)" :alt="jester.name"
+                    style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #202225;">
+                <div v-else
+                    style="width: 64px; height: 64px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff;">
+                    ?</div>
+
                 <div>
-                    <p>Prefix: <code>{{ jester.prefix }}</code></p>
-                    <small>User ID: {{ jester.user_id }}</small>
+                    <p>Prefix: <code>[[ jester.prefix ]]</code></p>
+                    <small>User ID: [[ jester.user_id ]]</small>
                 </div>
             </div>
-            {% if jester.discord_avatar_url %}
-            <footer>
+            <footer v-if="jester.discord_avatar_url">
                 <small>Starting from CDN</small>
             </footer>
-            {% endif %}
         </article>
-        {% empty %}
-        <p>No jesters found.</p>
-        {% endfor %}
+
+        <p v-if="jesters.length === 0">No jesters found.</p>
     </div>
 </main>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        data() {
+            return {
+                jesters: [],
+                loading: true
+            }
+        },
+        mounted() {
+            this.fetchAllJesters();
+        },
+        methods: {
+            async fetchAllJesters() {
+                try {
+                    // Fetch from the new 'all' endpoint
+                    const response = await fetch('/api/jesters/all');
+                    if (!response.ok) throw new Error('Failed to load');
+                    this.jesters = await response.json();
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+            getAvatar(jester) {
+                if (jester.discord_avatar_url) return jester.discord_avatar_url;
+                if (jester.local_avatar_url) return jester.local_avatar_url;
+                if (jester.avatar_url) return jester.avatar_url;
+                return null;
+            }
+        }
+    }).mount('#browseApp');
+</script>
 {% endblock %}

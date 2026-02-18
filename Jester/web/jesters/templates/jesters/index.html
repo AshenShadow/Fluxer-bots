@@ -1,17 +1,101 @@
 {% extends 'jesters/base.html' %}
 
-{% block content %}
-<article>
-    <header>
-        <h1>Welcome to Jester</h1>
-    </header>
-    <p>Manage your proxy characters easily.</p>
+{% block styles %}
+.hero-container {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+min-height: calc(100vh - 120px); /* Adjust for nav */
+text-align: center;
+}
 
-    <form method="post">
-        {% csrf_token %}
-        <label for="user_id">Enter your Fluxer User ID to continue:</label>
-        <input type="text" name="user_id" id="user_id" placeholder="e.g. 123456789" required>
-        <button type="submit" class="contrast">Enter Dashboard</button>
-    </form>
-</article>
+.hero-card {
+background: var(--bg-secondary);
+padding: 2.5rem;
+border-radius: var(--radius-lg);
+box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+width: 100%;
+max-width: 480px;
+border: 1px solid #2b2d31;
+}
+
+.hero-title {
+font-size: 2.5rem;
+font-weight: 800;
+margin-bottom: 1rem;
+background: linear-gradient(135deg, #fff 0%, #a3a6aa 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+font-size: 1.1rem;
+color: var(--text-secondary);
+margin-bottom: 2rem;
+}
+
+.login-form {
+display: flex;
+flex-direction: column;
+gap: 1.5rem;
+text-align: left;
+}
+
+.form-group label {
+margin-bottom: 0.5rem;
+display: block;
+}
+{% endblock %}
+
+{% block content %}
+<div id="loginApp" class="hero-container" v-cloak>
+    <div class="hero-card">
+        <h1 class="hero-title">Welcome to Jester</h1>
+        <p class="hero-subtitle">Manage your roleplay proxies with a modern, intuitive dashboard.</p>
+
+        <!-- Vue-controlled form -->
+        <form @submit.prevent="submitForm" class="login-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="user_id">Fluxer User ID</label>
+                <input type="text" v-model="userId" name="user_id" id="user_id" placeholder="e.g. 1473229..." required
+                    autofocus>
+                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
+                    Use <code>j!id</code> in chat to find your ID.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem;" :disabled="!isValid">
+                Enter Dashboard
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        data() {
+            return {
+                userId: ''
+            }
+        },
+        computed: {
+            isValid() {
+                return this.userId.length > 5; // Basic validation
+            }
+        },
+        methods: {
+            submitForm(e) {
+                // We use standard form submission to leverage Django's existing view logic for session/redirect
+                // But we control the event here.
+                e.target.submit();
+            }
+        }
+    }).mount('#loginApp');
+</script>
 {% endblock %}

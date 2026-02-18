@@ -1,32 +1,403 @@
 {% extends 'jesters/base.html' %}
 
+{% block extra_head %}
+<!-- Vue.js 3 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+<style>
+    /* Tupperbox-style Dashboard Remake - Vue Edition */
+
+    /* Global Overrides for this page */
+    body {
+        overflow: hidden;
+        /* Prevent full page scroll */
+    }
+
+    /* Override base.html container */
+    .main-container {
+        padding: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        height: calc(100vh - 60px);
+        /* Subtract navbar */
+        display: flex;
+        background-color: #36393f;
+    }
+
+    [v-cloak] {
+        display: none;
+    }
+
+    /* Layout structure matching previous design */
+    #app {
+        width: 100%;
+        height: 100%;
+        display: flex;
+    }
+
+    /* Sidebar */
+    .tb-sidebar {
+        width: 300px;
+        background-color: #2f3136;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        user-select: none;
+    }
+
+    .tb-sidebar-header {
+        height: 48px;
+        background-color: #415b76;
+        /* The blue header */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .tb-sidebar-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .tb-action-btn {
+        cursor: pointer;
+        opacity: 0.8;
+        font-size: 16px;
+        line-height: 1;
+        color: white;
+    }
+
+    .tb-action-btn:hover {
+        opacity: 1;
+    }
+
+    .tb-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-top: 8px;
+    }
+
+    /* Scrollbar */
+    .tb-list::-webkit-scrollbar {
+        width: 8px;
+        background-color: #2b2e33;
+    }
+
+    .tb-list::-webkit-scrollbar-thumb {
+        background-color: #202225;
+        border-radius: 4px;
+    }
+
+    .tb-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        cursor: pointer;
+        color: #b9bbbe;
+    }
+
+    .tb-item:hover {
+        background-color: rgba(79, 84, 92, 0.16);
+        color: #dcddde;
+    }
+
+    .tb-item.active {
+        background-color: rgba(79, 84, 92, 0.32);
+        color: #fff;
+    }
+
+    .tb-caret {
+        margin-right: 8px;
+        font-size: 10px;
+        color: #72767d;
+    }
+
+    .tb-avatar-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background-color: #36393f;
+        object-fit: cover;
+    }
+
+    .tb-avatar-small-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background-color: #36393f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #fff;
+    }
+
+    .tb-name-small {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Main Content */
+    .tb-main {
+        flex: 1;
+        background-color: #36393f;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    /* Empty State */
+    .tb-empty-state {
+        text-align: center;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .tb-empty-state:hover {
+        opacity: 1;
+    }
+
+    .tb-box-icon {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 20px;
+        /* Simple box SVG/Image representation */
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dcddde'%3E%3Cpath d='M20 7H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM4 9h16v10H4V9z'/%3E%3Cpath d='M4 9h16v2H4z' opacity='.3'/%3E%3C/svg%3E") no-repeat center;
+        background-size: contain;
+        display: inline-block;
+        filter: grayscale(100%);
+    }
+
+    /* Detail View */
+    .tb-detail-view {
+        width: 100%;
+        height: 100%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        max-width: 800px;
+    }
+
+    .tb-detail-header {
+        display: flex;
+        width: 100%;
+        margin-bottom: 30px;
+        align-items: flex-start;
+    }
+
+    /* STRICT IMAGE SIZE */
+    .tb-avatar-large {
+        width: 128px;
+        height: 128px;
+        min-width: 128px;
+        min-height: 128px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: #2f3136;
+        margin-right: 24px;
+        border: 4px solid #2f3136;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .tb-avatar-large-placeholder {
+        width: 128px;
+        height: 128px;
+        min-width: 128px;
+        min-height: 128px;
+        border-radius: 50%;
+        background-color: #2f3136;
+        margin-right: 24px;
+        border: 4px solid #2f3136;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: #72767d;
+    }
+
+    .tb-info-group {
+        flex: 1;
+    }
+
+    .tb-name-large {
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .tb-field {
+        background-color: #2f3136;
+        border: 1px solid #202225;
+        border-radius: 4px;
+        padding: 10px;
+        color: #dcddde;
+        font-family: 'Consolas', monospace;
+        margin-bottom: 16px;
+        display: inline-block;
+    }
+
+    .tb-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #b9bbbe;
+        margin-bottom: 4px;
+        font-weight: 700;
+    }
+
+    /* Tabs */
+    .tb-tabs {
+        display: flex;
+        gap: 20px;
+        color: #b9bbbe;
+        border-bottom: 1px solid #202225;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .tb-tab {
+        cursor: pointer;
+    }
+
+    .tb-tab.active {
+        color: #fff;
+        border-bottom: 2px solid #fff;
+        padding-bottom: 10px;
+        margin-bottom: -12px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<header style="display: flex; justify-content: space-between; align-items: center;">
-    <h1>Your Jesters</h1>
-    <a href="/create/?user_id={{ user_id }}" role="button">Create New Jester</a>
-</header>
+<div id="app" v-cloak>
 
-<hr>
+    <!-- Sidebar -->
+    <div class="tb-sidebar">
+        <div class="tb-sidebar-header">
+            <span>Your Tuppers</span>
+            <div class="tb-sidebar-actions">
+                <a class="tb-action-btn" :href="'/create/?user_id=' + userId" title="Create New">+</a>
+                <span class="tb-action-btn">-</span>
+                <span class="tb-action-btn">⋮</span>
+            </div>
+        </div>
 
-{% if jesters %}
-{% for jester in jesters %}
-<div class="jester-card">
-    {% if jester.avatar %}
-    <img src="{{ jester.avatar.url }}" alt="{{ jester.name }}" class="jester-avatar">
-    {% else %}
-    <div class="jester-avatar" style="background: #333; display: flex; align-items: center; justify-content: center;">?
+        <div class="tb-list">
+            <div v-if="loading" style="padding:16px; text-align:center; color:#72767d;">Loading...</div>
+
+            <div v-else-if="jesters.length === 0"
+                style="padding: 16px; text-align: center; color: #72767d; font-size: 12px;">
+                No tuppers.<br><a :href="'/create/?user_id=' + userId" style="color:#00b0f4;">Create one</a>
+            </div>
+
+            <div v-else v-for="jester in jesters" :key="jester.id" class="tb-item"
+                :class="{ active: selectedJester && selectedJester.id === jester.id }" @click="selectJester(jester)">
+
+                <span class="tb-caret">▶</span>
+
+                <img v-if="getAvatar(jester)" :src="getAvatar(jester)" class="tb-avatar-small">
+                <div v-else class="tb-avatar-small-placeholder">?</div>
+
+                <span class="tb-name-small">[[ jester.name ]]</span>
+            </div>
+        </div>
     </div>
-    {% endif %}
 
-    <div class="jester-info">
-        <h3>{{ jester.name }}</h3>
-        <p>Trigger: <code>{{ jester.prefix }}: message</code></p>
+    <!-- Main Content -->
+    <div class="tb-main">
+
+        <!-- Empty State -->
+        <div v-if="!selectedJester" class="tb-empty-state">
+            <div class="tb-box-icon"></div>
+            <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">No tuppers selected!</h3>
+        </div>
+
+        <!-- Detail View -->
+        <div v-else class="tb-detail-view">
+            <div class="tb-detail-header">
+                <img v-if="getAvatar(selectedJester)" :src="getAvatar(selectedJester)" class="tb-avatar-large">
+                <div v-else class="tb-avatar-large-placeholder">?</div>
+
+                <div class="tb-info-group">
+                    <div class="tb-label">Name</div>
+                    <div class="tb-name-large">[[ selectedJester.name ]]</div>
+
+                    <div class="tb-label" style="margin-top:16px;">Prefix</div>
+                    <div class="tb-field">[[ selectedJester.prefix ]]:text</div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; border-top: 1px solid #4f545c; padding-top:20px; width:100%;">
+                <div class="tb-tabs">
+                    <span class="tb-tab active">Info</span>
+                    <span class="tb-tab">Avatar</span>
+                    <span class="tb-tab">Settings</span>
+                </div>
+
+                <!-- Tab content placeholders -->
+                <div style="color: #b9bbbe; font-size: 0.9rem;">
+                    <em>More configuration options pending implementation...</em>
+                </div>
+            </div>
+        </div>
     </div>
+
 </div>
-{% endfor %}
-{% else %}
-<article>
-    <p>No jesters found. Create one to get started!</p>
-</article>
-{% endif %}
+
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'], // Change delimiters to avoid conflict with Django
+        data() {
+            return {
+                userId: "{{ user_id }}",
+                jesters: [],
+                selectedJester: null,
+                loading: true
+            }
+        },
+        mounted() {
+            this.fetchJesters();
+        },
+        methods: {
+            async fetchJesters() {
+                this.loading = true;
+                try {
+                    const response = await fetch(`/api/jesters/user/${this.userId}`);
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    this.jesters = await response.json();
+                } catch (error) {
+                    console.error("Error loading jesters:", error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+            selectJester(jester) {
+                this.selectedJester = jester;
+            },
+            getAvatar(jester) {
+                if (jester.discord_avatar_url) return jester.discord_avatar_url;
+                if (jester.local_avatar_url) return jester.local_avatar_url;
+                if (jester.avatar_url) return jester.avatar_url; // Fallback
+                return null;
+            }
+        }
+    }).mount('#app');
+</script>
 {% endblock %}
