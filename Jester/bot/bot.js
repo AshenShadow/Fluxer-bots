@@ -187,18 +187,16 @@ client.on(Events.MessageCreate, async (message) => {
         return sendEmbed(message, '❌ Not Found', `Jester "**${queryName}**" does not exist.`, '#f04747');
     }
 
-    // Command: j!info or j!i
-    if (/^j!(info|i)(\s|$)/i.test(message.content)) {
-        let queryName = message.content.replace(/^j!(info|i)\s*/i, '').trim();
+    // Command: j!info (j!i) or j!list (j!l)
+    if (/^j!(info|i|list|l)(\s|$)/i.test(message.content)) {
+        const command = message.content.match(/^j!(info|i|list|l)/i)[1].toLowerCase();
+        let query = message.content.replace(/^j!(info|i|list|l)\s*/i, '').trim();
 
-        if (queryName.startsWith('"') && queryName.endsWith('"')) {
-            queryName = queryName.slice(1, -1);
-        } else if (queryName.startsWith("'") && queryName.endsWith("'")) {
-            queryName = queryName.slice(1, -1);
-        }
-
-        if (!queryName) {
-            return sendEmbed(message, 'ℹ️ Jester Info', "Usage: `j!info <Name>`\nExample: `j!i \"My Jester\"`");
+        // Handle quotes
+        if (query.startsWith('"') && query.endsWith('"')) {
+            query = query.slice(1, -1);
+        } else if (query.startsWith("'") && query.endsWith("'")) {
+            query = query.slice(1, -1);
         }
 
         let jesters = tupperCache.get(message.author.id);
@@ -217,7 +215,56 @@ client.on(Events.MessageCreate, async (message) => {
             return sendEmbed(message, 'ℹ️ Info', "You don't have any Jesters yet.");
         }
 
-        const target = queryName.toLowerCase();
+        // Logic split:
+        // 1. If command is 'list' or 'l', show paginated list. Query treated as page number if numeric.
+        // 2. If command is 'info' or 'i':
+        //    a. If query is empty -> Show paginated list (Page 1).
+        //    b. If query is NOT empty -> Show info for that Jester.
+
+        let showList = false;
+        let page = 1;
+        const perPage = 10;
+
+        if (command === 'list' || command === 'l') {
+            showList = true;
+            if (query && /^\d+$/.test(query)) {
+                page = parseInt(query, 10);
+            }
+        } else {
+            // j!info or j!i
+            if (!query) {
+                showList = true;
+            }
+        }
+
+        if (showList) {
+            const totalJesters = jesters.length;
+            const totalPages = Math.ceil(totalJesters / perPage);
+
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            const start = (page - 1) * perPage;
+            const end = start + perPage;
+            const jestersOnPage = jesters.slice(start, end);
+
+            const embed = new EmbedBuilder()
+                .setTitle(`🎭 Your Jesters (Page ${page}/${totalPages})`)
+                .setColor('#9b59b6')
+                .setFooter({ text: `Total: ${totalJesters} Jesters • Fluxer Jester Bot` });
+
+            let description = "";
+            jestersOnPage.forEach(j => {
+                description += `**${j.name}**: \`${j.prefix}\`\n`;
+            });
+
+            embed.setDescription(description || "No jesters on this page.");
+            return message.reply({ embeds: [embed] });
+        }
+
+        // --- Show Info for specific Jester ---
+
+        const target = query.toLowerCase();
         const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
 
         if (exactMatch) {
@@ -248,7 +295,7 @@ client.on(Events.MessageCreate, async (message) => {
             return sendEmbed(message, '🔍 Not Found', `Did you mean: ${similarNames}?`, '#f04747');
         }
 
-        return sendEmbed(message, '❌ Not Found', `Jester "${queryName}" doesn't exist.`, '#f04747');
+        return sendEmbed(message, '❌ Not Found', `Jester "${query}" doesn't exist.`, '#f04747');
     }
 
     // Command: j!help or j!h
@@ -261,6 +308,10 @@ client.on(Events.MessageCreate, async (message) => {
                 {
                     name: '✨ Create',
                     value: '`j!create <Name> <Prefix:msg>`\nExample: `j!c "My Char" MC:msg`'
+                },
+                {
+                    name: '📜 List',
+                    value: '`j!list [page]` or `j!i` (no args)'
                 },
                 {
                     name: 'ℹ️ Info',
@@ -425,27 +476,40 @@ client.on(Events.MessageCreate, async (message) => {
                 content: innerContent
             };
 
-            // Handle Replies
-            // Fluxer uses 'messageReference' property which contains snake_case keys as seen in logs
+            // Handle Replies (Manual Format)
             const ref = message.messageReference || message.reference;
 
             if (ref) {
                 const msgId = ref.messageId || ref.message_id;
-                const guildId = ref.guildId || ref.guild_id;
-                const channelId = ref.channelId || ref.channel_id;
-
                 if (msgId) {
-                    webhookBody.message_reference = {
-                        message_id: msgId,
-                        guild_id: guildId,
-                        channel_id: channelId,
-                        fail_if_not_exists: false
-                    };
+                    try {
+                        // Attempt to fetch the referenced message to get content and author
+                        const refMsg = await message.channel.messages.fetch(msgId);
+
+                        if (refMsg) {
+                            const replyToUser = refMsg.author ? `<@${refMsg.author.id}>` : 'Unknown User';
+                            let replyContent = refMsg.content || '*[Attachment/Embed]*';
+
+                            // Truncate if too long (Discord limits)
+                            if (replyContent.length > 50) {
+                                replyContent = replyContent.substring(0, 50) + '...';
+                            }
+                            // Escape quotes or special chars if needed, but usually simple quoting is fine
+                            replyContent = replyContent.replace(/\n/g, ' '); // Flatten newlines for the quote
+
+                            // Update the content to include the manual reply block
+                            webhookBody.content = `(Reply to: ${replyToUser})\n> ${replyContent}\n\n${webhookBody.content}`;
+                        }
+                    } catch (fetchErr) {
+                        console.warn('Failed to fetch referenced message for reply formatting:', fetchErr.message);
+                        // Fallback if fetch fails (e.g. message deleted or not found)
+                        webhookBody.content = `(Reply to: Unknown)\n> *Message could not be loaded*\n\n${webhookBody.content}`;
+                    }
                 }
             }
 
             // Send as Jester using direct REST call
-            console.log('[DEBUG v3.5] Final Webhook Body:', JSON.stringify(webhookBody, null, 2));
+            console.log('[DEBUG v3.6] Final Webhook Body:', JSON.stringify(webhookBody, null, 2));
             try {
                 // Force wait=true to get the message object back
                 const route = Routes.webhookExecute(webhook.id, webhook.token) + '?wait=true';
