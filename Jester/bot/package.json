@@ -13,6 +13,7 @@
   "dependencies": {
     "@fluxerjs/core": "^1.1.1",
     "axios": "^1.13.5",
-    "form-data": "^4.0.5"
+    "form-data": "^4.0.5",
+    "playwright": "^1.58.2"
   }
 }

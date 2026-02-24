@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 
 const client = new Client({
     intents: 32767,
+    waitForGuilds: true,
 });
 
 const API_URL = 'http://127.0.0.1:8000/api/jesters';
@@ -366,7 +367,10 @@ client.on(Events.MessageCreate, async (message) => {
 
         try {
             // Find or create webhook
-            const webhooks = await message.channel.fetchWebhooks();
+            const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+            if (!proxyChannel) return;
+
+            const webhooks = await proxyChannel.fetchWebhooks();
             let webhook = webhooks.find(w => w.name === 'Jester Proxy');
 
             if (!webhook) {
@@ -427,7 +431,7 @@ client.on(Events.MessageCreate, async (message) => {
 
                                 if (!storageChannel) {
                                     console.warn("Could not find 'jesters-image-gallery' channel in cache!");
-                                    storageChannel = message.channel;
+                                    storageChannel = proxyChannel;
                                 }
 
                                 const attachmentMsgData = await client.rest.post(Routes.channelMessages(storageChannel.id), {
@@ -450,9 +454,9 @@ client.on(Events.MessageCreate, async (message) => {
                                         console.error('Failed to save avatar URL to DB:', dbErr.message);
                                     }
 
-                                    if (storageChannel.id === message.channel.id) {
+                                    if (storageChannel.id === proxyChannel.id) {
                                         try {
-                                            await client.rest.delete(Routes.channelMessage(message.channel.id, attachmentMsgData.id));
+                                            await client.rest.delete(Routes.channelMessage(proxyChannel.id, attachmentMsgData.id));
                                         } catch (delErr) { console.warn('Failed to delete temp message'); }
                                     }
                                 }
@@ -484,7 +488,7 @@ client.on(Events.MessageCreate, async (message) => {
                 if (msgId) {
                     try {
                         // Attempt to fetch the referenced message to get content and author
-                        const refMsg = await message.channel.messages.fetch(msgId);
+                        const refMsg = await proxyChannel.messages.fetch(msgId);
 
                         if (refMsg) {
                             const replyToUser = refMsg.author ? `<@${refMsg.author.id}>` : 'Unknown User';
