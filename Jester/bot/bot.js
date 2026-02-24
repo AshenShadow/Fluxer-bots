@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Client, Events, Routes, EmbedBuilder } from '@fluxerjs/core';
 import axios from 'axios';
 import path from 'path';
