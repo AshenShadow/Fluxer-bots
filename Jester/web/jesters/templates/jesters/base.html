@@ -279,15 +279,9 @@
             animation: spin 0.8s linear infinite;
             margin: 3rem auto;
         }
-
-            {
-            % block styles %
-        }
-
-            {
-            % endblock %
-        }
     </style>
+    {% block styles %}{% endblock %}
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body>
@@ -296,6 +290,7 @@
             <a href="/" class="brand">🎭 <em>Jester</em></a>
             <ul class="nav-links" style="list-style:none;display:flex;align-items:center;gap:1.5rem;">
                 {% if user.is_authenticated %}
+                <li><a href="{% url 'dashboard' %}">My Jesters</a></li>
                 <li><a href="/profile/">Profile</a></li>
                 <li>
                     <form action="/logout/" method="post" style="margin:0;">

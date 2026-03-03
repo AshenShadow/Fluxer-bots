@@ -1,94 +1,362 @@
 {% extends 'jesters/base.html' %}
 
-{% block styles %}
-.create-container {
-max-width: 600px;
-margin: 0 auto;
-}
-
-.create-card {
-background: var(--bg-secondary);
-padding: 2.5rem;
-border-radius: var(--radius-lg);
-border: 1px solid #2b2d31;
-box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.form-group {
-margin-bottom: 2rem;
-}
-
-.form-hint {
-display: block;
-color: var(--text-secondary);
-font-size: 0.85rem;
-margin-top: 0.5rem;
-}
-
-.preview-avatar {
-width: 100px;
-height: 100px;
-border-radius: 50%;
-background-color: var(--bg-tertiary);
-border: 2px dashed #2b2d31;
-display: flex;
-align-items: center;
-justify-content: center;
-margin-bottom: 1rem;
-overflow: hidden;
-}
-
-.preview-avatar img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-}
-{% endblock %}
-
 {% block content %}
-<div id="createApp" class="create-container" v-cloak>
-    <div class="page-header">
-        <h1>Create a New Jester</h1>
-        <a :href="'/dashboard/?user_id=' + userId" class="btn btn-outline">Cancel</a>
-    </div>
+<style>
+    /* Premium Glassmorphism Create Jester UI */
+    .create-page-wrapper {
+        min-height: calc(100vh - var(--nav-height) - 4rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Background Ambient Effects */
+    .bg-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: 0;
+        animation: floatOrb 10s ease-in-out infinite alternate;
+    }
+
+    .orb-purple {
+        width: 300px;
+        height: 300px;
+        background: rgba(155, 89, 182, 0.2);
+        top: 20%;
+        left: 25%;
+        transform: translate(-50%, -50%);
+    }
+
+    .orb-blue {
+        width: 250px;
+        height: 250px;
+        background: rgba(41, 128, 185, 0.15);
+        bottom: 10%;
+        right: 25%;
+        transform: translate(50%, -50%);
+        animation-delay: -5s;
+    }
+
+    @keyframes floatOrb {
+        0% {
+            transform: scale(1) translate(0, 0);
+        }
+
+        100% {
+            transform: scale(1.1) translate(30px, -30px);
+        }
+    }
+
+    /* Main Card */
+    .create-card {
+        background: rgba(42, 31, 61, 0.7);
+        border: 1px solid rgba(155, 89, 182, 0.2);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border-radius: 24px;
+        padding: 3rem;
+        width: 100%;
+        max-width: 550px;
+        z-index: 1;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        animation: fadeUp 0.6s ease-out;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .card-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #d5b8ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+    }
+
+    .card-subtitle {
+        color: #a0a0b0;
+        font-size: 1rem;
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #e0e0e0;
+        margin-bottom: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(20, 15, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+        color: #fff;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: rgba(155, 89, 182, 0.6);
+        background: rgba(30, 20, 45, 0.8);
+        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.15);
+    }
+
+    .form-input::placeholder {
+        color: #6c6c7d;
+    }
+
+    .form-hint {
+        display: block;
+        color: #8a8a9e;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Avatar Upload */
+    .avatar-upload-container {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1rem;
+        background: rgba(20, 15, 30, 0.4);
+        border: 1px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+    .avatar-upload-container:hover {
+        border-color: rgba(155, 89, 182, 0.4);
+    }
+
+    .preview-avatar {
+        width: 80px;
+        height: 80px;
+        min-width: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(41, 128, 185, 0.2));
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .preview-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-placeholder {
+        font-size: 1.8rem;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 300;
+    }
+
+    .upload-actions {
+        flex: 1;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .btn-upload {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-upload:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .form-input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        height: 100%;
+        width: 100%;
+    }
+
+    /* Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2.5rem;
+    }
+
+    .btn-create {
+        flex: 2;
+        background: linear-gradient(135deg, var(--primary), #8e44ad);
+        color: #fff;
+        border: none;
+        padding: 1rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: 0 8px 20px rgba(155, 89, 182, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-create:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(155, 89, 182, 0.5);
+    }
+
+    .btn-create:disabled {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.3);
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background: transparent;
+        color: #a0a0b0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    /* Vue Cloak */
+    [v-cloak] {
+        display: none;
+    }
+</style>
+
+<div id="createApp" class="create-page-wrapper" v-cloak>
+    <!-- Background effects -->
+    <div class="bg-orb orb-purple"></div>
+    <div class="bg-orb orb-blue"></div>
 
     <div class="create-card">
+        <div class="card-header">
+            <h1 class="card-title">Summon a Jester</h1>
+            <p class="card-subtitle">Bring a new character to life on your dashboard.</p>
+        </div>
+
         <form method="post" enctype="multipart/form-data" @submit="handleSubmit">
             {% csrf_token %}
-            <input type="hidden" name="user_id" :value="userId">
 
             <div class="form-group">
-                <label for="name">Jester Name</label>
-                <input type="text" v-model="name" name="name" id="name" placeholder="e.g. My Awesome Character"
-                    required>
-                <span class="form-hint">The name displayed when the bot proxies your message.</span>
+                <label for="name" class="form-label">Jester Name</label>
+                <input type="text" v-model="name" name="name" id="name" class="form-input"
+                    placeholder="e.g. Shadow the Hedgehog" required autocomplete="off">
             </div>
 
             <div class="form-group">
-                <label for="prefix">Trigger Prefix</label>
-                <input type="text" v-model="prefix" @input="sanitizePrefix" name="prefix" id="prefix"
-                    placeholder="e.g. mychar" required>
-                <span class="form-hint">
-                    Type <code>[[ prefix ]]: your message</code> to proxy.
-                </span>
+                <label for="prefix" class="form-label">Trigger Prefix</label>
+                <input type="text" v-model="prefix" @input="sanitizePrefix" name="prefix" id="prefix" class="form-input"
+                    placeholder="e.g. shadow" required autocomplete="off">
+                <span class="form-hint">Your Jester will speak when you type <code>[[ prefix ]]: message</code></span>
             </div>
 
             <div class="form-group">
-                <label for="avatar">Avatar</label>
-                <div class="preview-avatar" :style="previewStyle">
-                    <img v-if="previewUrl" :src="previewUrl" alt="Preview">
-                    <span v-else style="font-size: 2rem; color: #444;">?</span>
+                <label class="form-label">Avatar Identity</label>
+                <div class="avatar-upload-container">
+                    <div class="preview-avatar" :style="previewStyle">
+                        <img v-if="previewUrl" :src="previewUrl" alt="Avatar Preview">
+                        <span v-else class="preview-placeholder">?</span>
+                    </div>
+                    <div class="upload-actions">
+                        <div class="file-input-wrapper">
+                            <div class="btn-upload">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Choose Image
+                            </div>
+                            <input type="file" @change="handleFileUpload" name="avatar" id="avatar" class="form-input"
+                                accept="image/*" required>
+                        </div>
+                        <span class="form-hint" style="margin-top: 0.5rem; display: block;">High-res square images work
+                            best.</span>
+                    </div>
                 </div>
-                <input type="file" @change="handleFileUpload" name="avatar" id="avatar" accept="image/*" required>
-                <span class="form-hint">Upload an image to set as the profile picture.</span>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" :disabled="!isValid">
-                Create Jester
-            </button>
+            <div class="action-buttons">
+                <a href="{% url 'dashboard' %}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-create" :disabled="!isValid">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Create
+                </button>
+            </div>
         </form>
     </div>
 </div>
+
+{% block extra_head %}
+<!-- Vue.js 3 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+{% endblock %}
 
 <script>
     const { createApp } = Vue;
@@ -97,7 +365,6 @@ object-fit: cover;
         delimiters: ['[[', ']]'],
         data() {
             return {
-                userId: "{{ user_id }}",
                 name: '',
                 prefix: '',
                 previewUrl: null
@@ -105,11 +372,10 @@ object-fit: cover;
         },
         computed: {
             previewStyle() {
-                return this.previewUrl ? { border: '2px solid var(--accent-primary)' } : {};
+                return this.previewUrl ? { borderColor: 'var(--primary)' } : {};
             },
             isValid() {
-                // Ensure required fields are filled (HTML required attr handles mostly, but good for button state)
-                return this.name && this.prefix && this.previewUrl;
+                return this.name.trim() !== '' && this.prefix.trim() !== '' && this.previewUrl !== null;
             }
         },
         methods: {
@@ -129,8 +395,6 @@ object-fit: cover;
                 }
             },
             handleSubmit(e) {
-                // Allow default form submission
-                // We rely on standard POST handling for file uploads
                 if (!this.isValid) {
                     e.preventDefault();
                 }

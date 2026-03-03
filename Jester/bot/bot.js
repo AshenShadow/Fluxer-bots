@@ -548,7 +548,7 @@ client.on(Events.MessageCreate, async (message) => {
                 .setDescription("**Reactions:**\nYou can manage the messages sent by your Jesters by reacting to them directly.")
                 .addFields(
                     { name: '❌ Delete Message', value: 'React with ❌ to a Jester\'s message to immediately delete it.' },
-                    { name: '✏️ Edit Message', value: 'React with ✏️ to a Jester\'s message to edit it. The bot will DM you the original message so you can fix typos and send the corrections directly back to the bot.' }
+                    { name: '~~✏️ Edit Message~~', value: '~~React with ✏️ to a Jester\'s message to edit it. The bot will DM you the original message so you can fix typos and send the corrections directly back to the bot.~~ (I\'m working on it)' }
                 );
         } else {
             return sendEmbed(message, '❌ Unknown Category', "That category doesn't exist. Type `j!help` to see a list of categories.", '#f04747');
@@ -894,6 +894,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
         try {
             const dmChannel = await user.createDM();
             await dmChannel.send(`\`\`\`\n${message.content}\n\`\`\`\n\nType the new message and send it to me to edit the original message`);
+            await dmChannel.send('Message editing doesn\'t work as of now. Please be patient, I\'ll resolve this issue as soon as I can.');
 
             // Wait for user's response in DMs (30s) manually since awaitMessages doesn't exist in @fluxerjs
             const newContent = await new Promise((resolve, reject) => {

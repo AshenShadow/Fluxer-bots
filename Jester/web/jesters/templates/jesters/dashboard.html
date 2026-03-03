@@ -21,7 +21,7 @@
         height: calc(100vh - 60px);
         /* Subtract navbar */
         display: flex;
-        background-color: #36393f;
+        background-color: var(--bg);
     }
 
     [v-cloak] {
@@ -38,17 +38,17 @@
     /* Sidebar */
     .tb-sidebar {
         width: 300px;
-        background-color: #2f3136;
+        background-color: var(--surface);
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
         user-select: none;
+        border-right: 1px solid rgba(155, 89, 182, 0.15);
     }
 
     .tb-sidebar-header {
         height: 48px;
-        background-color: #415b76;
-        /* The blue header */
+        background-color: rgba(155, 89, 182, 0.2);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -56,7 +56,7 @@
         color: #fff;
         font-weight: 600;
         font-size: 14px;
-        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(155, 89, 182, 0.3);
     }
 
     .tb-sidebar-actions {
@@ -85,11 +85,11 @@
     /* Scrollbar */
     .tb-list::-webkit-scrollbar {
         width: 8px;
-        background-color: #2b2e33;
+        background-color: var(--bg);
     }
 
     .tb-list::-webkit-scrollbar-thumb {
-        background-color: #202225;
+        background-color: var(--surface-2);
         border-radius: 4px;
     }
 
@@ -102,13 +102,14 @@
     }
 
     .tb-item:hover {
-        background-color: rgba(79, 84, 92, 0.16);
+        background-color: rgba(155, 89, 182, 0.1);
         color: #dcddde;
     }
 
     .tb-item.active {
-        background-color: rgba(79, 84, 92, 0.32);
+        background-color: rgba(155, 89, 182, 0.25);
         color: #fff;
+        border-left: 3px solid var(--primary);
     }
 
     .tb-caret {
@@ -122,7 +123,7 @@
         height: 32px;
         border-radius: 50%;
         margin-right: 10px;
-        background-color: #36393f;
+        background-color: var(--surface-2);
         object-fit: cover;
     }
 
@@ -131,7 +132,7 @@
         height: 32px;
         border-radius: 50%;
         margin-right: 10px;
-        background-color: #36393f;
+        background-color: var(--primary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -149,7 +150,7 @@
     /* Main Content */
     .tb-main {
         flex: 1;
-        background-color: #36393f;
+        background-color: var(--bg);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -173,11 +174,10 @@
         width: 120px;
         height: 120px;
         margin-bottom: 20px;
-        /* Simple box SVG/Image representation */
-        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23dcddde'%3E%3Cpath d='M20 7H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM4 9h16v10H4V9z'/%3E%3Cpath d='M4 9h16v2H4z' opacity='.3'/%3E%3C/svg%3E") no-repeat center;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239b59b6'%3E%3Cpath d='M20 7H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM4 9h16v10H4V9z'/%3E%3Cpath d='M4 9h16v2H4z' opacity='.3'/%3E%3C/svg%3E") no-repeat center;
         background-size: contain;
         display: inline-block;
-        filter: grayscale(100%);
+        filter: drop-shadow(0 0 8px rgba(155, 89, 182, 0.4));
     }
 
     /* Detail View */
@@ -206,10 +206,10 @@
         min-height: 128px;
         border-radius: 50%;
         object-fit: cover;
-        background-color: #2f3136;
+        background-color: var(--surface);
         margin-right: 24px;
-        border: 4px solid #2f3136;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border: 4px solid var(--surface-2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .tb-avatar-large-placeholder {
@@ -218,15 +218,15 @@
         min-width: 128px;
         min-height: 128px;
         border-radius: 50%;
-        background-color: #2f3136;
+        background-color: var(--surface);
         margin-right: 24px;
-        border: 4px solid #2f3136;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border: 4px solid var(--primary);
+        box-shadow: 0 8px 24px rgba(155, 89, 182, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 48px;
-        color: #72767d;
+        color: var(--primary-h);
     }
 
     .tb-info-group {
@@ -241,8 +241,8 @@
     }
 
     .tb-field {
-        background-color: #2f3136;
-        border: 1px solid #202225;
+        background-color: var(--surface-2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 4px;
         padding: 10px;
         color: #dcddde;
@@ -254,7 +254,7 @@
     .tb-label {
         font-size: 12px;
         text-transform: uppercase;
-        color: #b9bbbe;
+        color: var(--primary-h);
         margin-bottom: 4px;
         font-weight: 700;
     }
@@ -264,7 +264,7 @@
         display: flex;
         gap: 20px;
         color: #b9bbbe;
-        border-bottom: 1px solid #202225;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding-bottom: 10px;
         margin-bottom: 20px;
         width: 100%;
@@ -272,24 +272,95 @@
 
     .tb-tab {
         cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .tb-tab:hover {
+        color: #fff;
     }
 
     .tb-tab.active {
-        color: #fff;
-        border-bottom: 2px solid #fff;
+        color: var(--primary-h);
+        border-bottom: 2px solid var(--primary);
         padding-bottom: 10px;
         margin-bottom: -12px;
+    }
+
+    /* Sub-page forms */
+    .tb-input {
+        width: 100%;
+        background-color: var(--bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 10px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+    }
+
+    .tb-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .tb-btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .tb-btn-primary {
+        background-color: var(--primary);
+        color: #fff;
+    }
+
+    .tb-btn-primary:hover:not(:disabled) {
+        background-color: var(--primary-h);
+    }
+
+    .tb-btn-secondary {
+        background-color: var(--surface-2);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tb-btn-secondary:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .tb-btn-danger {
+        background-color: #e74c3c;
+        color: #fff;
+    }
+
+    .tb-btn-danger:hover:not(:disabled) {
+        background-color: #c0392b;
+    }
+
+    .tb-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div id="app" v-cloak>
+    {% csrf_token %}
 
     <!-- Sidebar -->
     <div class="tb-sidebar">
         <div class="tb-sidebar-header">
-            <span>Your Tuppers</span>
+            <span>Your Jesters</span>
             <div class="tb-sidebar-actions">
                 <a class="tb-action-btn" :href="'/create/?user_id=' + userId" title="Create New">+</a>
                 <span class="tb-action-btn">-</span>
@@ -302,7 +373,7 @@
 
             <div v-else-if="jesters.length === 0"
                 style="padding: 16px; text-align: center; color: #72767d; font-size: 12px;">
-                No tuppers.<br><a :href="'/create/?user_id=' + userId" style="color:#00b0f4;">Create one</a>
+                No jesters.<br><a :href="'/create/?user_id=' + userId" style="color:#00b0f4;">Create one</a>
             </div>
 
             <div v-else v-for="jester in jesters" :key="jester.id" class="tb-item"
@@ -324,7 +395,7 @@
         <!-- Empty State -->
         <div v-if="!selectedJester" class="tb-empty-state">
             <div class="tb-box-icon"></div>
-            <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">No tuppers selected!</h3>
+            <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">No jester selected!</h3>
         </div>
 
         <!-- Detail View -->
@@ -342,16 +413,83 @@
                 </div>
             </div>
 
-            <div style="margin-top:20px; border-top: 1px solid #4f545c; padding-top:20px; width:100%;">
+            <div style="margin-top:20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top:20px; width:100%;">
                 <div class="tb-tabs">
-                    <span class="tb-tab active">Info</span>
-                    <span class="tb-tab">Avatar</span>
-                    <span class="tb-tab">Settings</span>
+                    <span class="tb-tab" :class="{active: activeTab === 'info'}" @click="activeTab = 'info'">Info</span>
+                    <span class="tb-tab" :class="{active: activeTab === 'avatar'}"
+                        @click="activeTab = 'avatar'">Avatar</span>
+                    <span class="tb-tab" :class="{active: activeTab === 'settings'}"
+                        @click="activeTab = 'settings'">Settings</span>
                 </div>
 
-                <!-- Tab content placeholders -->
-                <div style="color: #b9bbbe; font-size: 0.9rem;">
-                    <em>More configuration options pending implementation...</em>
+                <!-- INFO TAB -->
+                <div v-if="activeTab === 'info'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="tb-label">Name</label>
+                        <input type="text" v-model="editForm.name" class="tb-input" placeholder="Jester Name">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="tb-label">Prefix</label>
+                        <input type="text" v-model="editForm.prefix" @input="sanitizePrefix" class="tb-input"
+                            placeholder="Jester Prefix">
+                    </div>
+                    <button class="tb-btn tb-btn-primary" @click="saveInfo"
+                        :disabled="isSaving || !editForm.name || !editForm.prefix">
+                        [[ isSaving ? 'Saving...' : 'Save Changes' ]]
+                    </button>
+                </div>
+
+                <!-- AVATAR TAB -->
+                <div v-if="activeTab === 'avatar'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <p style="color: #a0a0b0; font-size: 0.9rem; margin-bottom: 1rem;">Upload a new high-resolution
+                        square avatar.</p>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <img v-if="avatarPreview || getAvatar(selectedJester)"
+                            :src="avatarPreview || getAvatar(selectedJester)" class="tb-avatar-large"
+                            style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; margin-right: 0;">
+                        <div v-else class="tb-avatar-large-placeholder"
+                            style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; margin-right: 0; font-size: 24px;">
+                            ?</div>
+
+                        <div style="position: relative; overflow: hidden; display: inline-block;">
+                            <div class="tb-btn tb-btn-secondary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Choose Image
+                            </div>
+                            <input type="file" @change="handleAvatarUpload" accept="image/*"
+                                style="opacity: 0; position: absolute; left: 0; top: 0; width: 100%; height: 100%; cursor: pointer;">
+                        </div>
+                    </div>
+                    <button class="tb-btn tb-btn-primary" @click="saveAvatar" :disabled="!avatarFile || isSaving">
+                        [[ isSaving ? 'Uploading...' : 'Upload Avatar' ]]
+                    </button>
+                </div>
+
+                <!-- SETTINGS TAB -->
+                <div v-if="activeTab === 'settings'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <div
+                        style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4
+                            style="color: #e74c3c; margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 700;">
+                            Danger Zone</h4>
+                        <p style="color: #b9bbbe; font-size: 0.9rem; margin-bottom: 1rem;">Deleting a Jester is
+                            irreversible. All associated message proxies and data will be lost immediately.</p>
+                        <button class="tb-btn tb-btn-danger" @click="deleteJester" :disabled="isSaving">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                </path>
+                            </svg>
+                            Delete Jester
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -369,13 +507,27 @@
                 userId: "{{ user_id }}",
                 jesters: [],
                 selectedJester: null,
-                loading: true
+                loading: true,
+                activeTab: 'info',
+                isSaving: false,
+                editForm: {
+                    name: '',
+                    prefix: ''
+                },
+                avatarFile: null,
+                avatarPreview: null
             }
         },
         mounted() {
             this.fetchJesters();
         },
         methods: {
+            sanitizePrefix() {
+                this.editForm.prefix = this.editForm.prefix.replace(/\s+/g, '');
+            },
+            getCsrfToken() {
+                return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            },
             async fetchJesters() {
                 this.loading = true;
                 try {
@@ -390,12 +542,108 @@
             },
             selectJester(jester) {
                 this.selectedJester = jester;
+                this.activeTab = 'info';
+                this.editForm = {
+                    name: jester.name,
+                    prefix: jester.prefix
+                };
+                this.avatarFile = null;
+                this.avatarPreview = null;
             },
             getAvatar(jester) {
                 if (jester.discord_avatar_url) return jester.discord_avatar_url;
                 if (jester.local_avatar_url) return jester.local_avatar_url;
                 if (jester.avatar_url) return jester.avatar_url; // Fallback
                 return null;
+            },
+            async saveInfo() {
+                if (!this.editForm.name || !this.editForm.prefix) return;
+                this.isSaving = true;
+                try {
+                    const response = await fetch(`/api/jesters/${this.selectedJester.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCsrfToken()
+                        },
+                        body: JSON.stringify(this.editForm)
+                    });
+                    if (!response.ok) throw new Error('Failed to update');
+                    const updated = await response.json();
+
+                    const index = this.jesters.findIndex(j => j.id === updated.id);
+                    if (index !== -1) {
+                        this.jesters[index].name = updated.name;
+                        this.jesters[index].prefix = updated.prefix;
+                        this.selectedJester = this.jesters[index];
+                    }
+                } catch (e) {
+                    console.error("Error saving info!", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            handleAvatarUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                this.avatarFile = file;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    this.avatarPreview = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+            async saveAvatar() {
+                if (!this.avatarFile) return;
+                this.isSaving = true;
+                try {
+                    const formData = new FormData();
+                    formData.append('avatar', this.avatarFile);
+
+                    const response = await fetch(`/api/jesters/${this.selectedJester.id}/avatar`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': this.getCsrfToken()
+                        },
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error('Failed to upload avatar');
+                    const updated = await response.json();
+
+                    const index = this.jesters.findIndex(j => j.id === updated.id);
+                    if (index !== -1) {
+                        this.jesters[index].local_avatar_url = updated.local_avatar_url;
+                        this.jesters[index].discord_avatar_url = updated.discord_avatar_url;
+                        this.jesters[index].avatar_url = updated.avatar_url;
+                        this.selectedJester = this.jesters[index];
+                    }
+                    this.avatarFile = null;
+                    this.avatarPreview = null;
+                } catch (e) {
+                    console.error("Error uploading avatar!", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            async deleteJester() {
+                if (!confirm(`Are you absolutely sure you want to delete ${this.selectedJester.name}?`)) return;
+                this.isSaving = true;
+                try {
+                    const response = await fetch(`/api/jesters/${this.selectedJester.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': this.getCsrfToken()
+                        }
+                    });
+                    if (!response.ok && response.status !== 204) throw new Error('Failed to delete');
+
+                    this.jesters = this.jesters.filter(j => j.id !== this.selectedJester.id);
+                    this.selectedJester = null;
+                } catch (e) {
+                    console.error("Error deleting Jester!", e);
+                } finally {
+                    this.isSaving = false;
+                }
             }
         }
     }).mount('#app');

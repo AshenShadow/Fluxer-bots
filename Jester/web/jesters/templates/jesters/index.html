@@ -1,101 +1,320 @@
 {% extends 'jesters/base.html' %}
 
-{% block styles %}
-.hero-container {
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-min-height: calc(100vh - 120px); /* Adjust for nav */
-text-align: center;
-}
-
-.hero-card {
-background: var(--bg-secondary);
-padding: 2.5rem;
-border-radius: var(--radius-lg);
-box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-width: 100%;
-max-width: 480px;
-border: 1px solid #2b2d31;
-}
-
-.hero-title {
-font-size: 2.5rem;
-font-weight: 800;
-margin-bottom: 1rem;
-background: linear-gradient(135deg, #fff 0%, #a3a6aa 100%);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-}
-
-.hero-subtitle {
-font-size: 1.1rem;
-color: var(--text-secondary);
-margin-bottom: 2rem;
-}
-
-.login-form {
-display: flex;
-flex-direction: column;
-gap: 1.5rem;
-text-align: left;
-}
-
-.form-group label {
-margin-bottom: 0.5rem;
-display: block;
-}
-{% endblock %}
-
 {% block content %}
-<div id="loginApp" class="hero-container" v-cloak>
-    <div class="hero-card">
-        <h1 class="hero-title">Welcome to Jester</h1>
-        <p class="hero-subtitle">Manage your roleplay proxies with a modern, intuitive dashboard.</p>
+<style>
+    .hero-section {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - var(--nav-height) - 4rem);
+        text-align: center;
+        padding: 2rem;
+        overflow: hidden;
+    }
 
-        <!-- Vue-controlled form -->
-        <form @submit.prevent="submitForm" class="login-form">
-            {% csrf_token %}
+    /* Background dynamic orb effects */
+    .bg-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: -1;
+        animation: floatOrb 10s ease-in-out infinite alternate;
+    }
 
-            <div class="form-group">
-                <label for="user_id">Fluxer User ID</label>
-                <input type="text" v-model="userId" name="user_id" id="user_id" placeholder="e.g. 1473229..." required
-                    autofocus>
-                <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
-                    Use <code>j!id</code> in chat to find your ID.
-                </small>
+    .orb-1 {
+        width: 400px;
+        height: 400px;
+        background: rgba(155, 89, 182, 0.25);
+        top: 50%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    .orb-2 {
+        width: 350px;
+        height: 350px;
+        background: rgba(41, 128, 185, 0.25);
+        top: 60%;
+        right: 20%;
+        transform: translate(50%, -50%);
+        animation-delay: -5s;
+    }
+
+    @keyframes floatOrb {
+        0% {
+            transform: scale(1) translate(0, 0);
+        }
+
+        100% {
+            transform: scale(1.2) translate(40px, -40px);
+        }
+    }
+
+    .hero-title {
+        font-size: clamp(3rem, 8vw, 5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #d5b8ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.02em;
+        animation: fadeUp 1s ease-out;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1.1rem, 3vw, 1.3rem);
+        color: #a0a0b0;
+        max-width: 650px;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+        animation: fadeUp 1s ease-out 0.2s backwards;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 1.5rem;
+        animation: fadeUp 1s ease-out 0.4s backwards;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-hero {
+        padding: 1rem 2.5rem;
+        font-size: 1.15rem;
+        border-radius: 99px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+
+    .btn-hero svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s;
+    }
+
+    .btn-hero:hover svg {
+        transform: translateX(4px);
+    }
+
+    .btn-hero-primary {
+        background: linear-gradient(135deg, var(--primary), #8e44ad);
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(155, 89, 182, 0.3);
+    }
+
+    .btn-hero-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(155, 89, 182, 0.5);
+        color: #fff;
+    }
+
+    .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px);
+        color: var(--text);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 6rem;
+        width: 100%;
+        max-width: 1100px;
+        animation: fadeUp 1s ease-out 0.6s backwards;
+    }
+
+    .feature-card {
+        background: rgba(42, 31, 61, 0.6);
+        border: 1px solid rgba(155, 89, 182, 0.15);
+        border-radius: 24px;
+        padding: 2.5rem;
+        text-align: left;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+        pointer-events: none;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        background: rgba(58, 45, 80, 0.7);
+        border-color: rgba(155, 89, 182, 0.4);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(155, 89, 182, 0.05));
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary-h);
+    }
+
+    .feature-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text);
+    }
+
+    .feature-text {
+        color: #a0a0b0;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        padding: 0.6rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2.5rem;
+        border-radius: 99px;
+        animation: fadeUp 1s ease-out forwards;
+    }
+
+    .glass-panel span {
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background: linear-gradient(90deg, #d5b8ff, #ffffff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<div class="hero-section">
+    <!-- Ambient blurred background shapes -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <div class="glass-panel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="color: #c39bd3">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        <span>The Future of Roleplay Proxies</span>
+    </div>
+
+    <h1 class="hero-title">Bring Your Characters<br>To Life</h1>
+    <p class="hero-subtitle">
+        Manage your roleplay proxies seamlessly. Create, switch, and express yourself with a next-generation dashboard
+        powered by Fluxer.
+    </p>
+
+    <div class="hero-actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'profile' %}" class="btn-hero btn-hero-primary">
+            Go to Dashboard
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn-hero btn-hero-primary">
+            Login with Fluxer
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+        </a>
+        <a href="https://github.com/Fluxer-bots/Jester" target="_blank" class="btn-hero btn-hero-secondary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                </path>
+            </svg>
+            View GitHub
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Features Grid -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
             </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem;" :disabled="!isValid">
-                Enter Dashboard
-            </button>
-        </form>
+            <h3 class="feature-title">Proxy Management</h3>
+            <p class="feature-text">Seamlessly organize and update all your roleplay characters in one centralized,
+                fluid interface.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
+            <h3 class="feature-title">Modern Dashboard</h3>
+            <p class="feature-text">Built on a cutting-edge Vue.js interface that provides instant feedback and
+                beautiful interactions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <h3 class="feature-title">Seamless Chat</h3>
+            <p class="feature-text">Instantly message via your proxy characters utilizing our highly optimized Fluxer
+                integration.</p>
+        </div>
     </div>
 </div>
-
-<script>
-    const { createApp } = Vue;
-
-    createApp({
-        delimiters: ['[[', ']]'],
-        data() {
-            return {
-                userId: ''
-            }
-        },
-        computed: {
-            isValid() {
-                return this.userId.length > 5; // Basic validation
-            }
-        },
-        methods: {
-            submitForm(e) {
-                // We use standard form submission to leverage Django's existing view logic for session/redirect
-                // But we control the event here.
-                e.target.submit();
-            }
-        }
-    }).mount('#loginApp');
-</script>
 {% endblock %}
