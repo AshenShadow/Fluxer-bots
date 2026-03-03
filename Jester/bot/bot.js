@@ -509,7 +509,7 @@ client.on(Events.MessageCreate, async (message) => {
         if (!category) {
             const embed = new EmbedBuilder()
                 .setTitle(`🎭 Jester Bot Help`)
-                .setDescription("To view commands for a specific category, use `j!help <Category>`.\n\n**Categories:**\n• `Global` - Core proxy and management commands\n• `Editing` - Commands to modify your Jesters\n• `Autoproxy` - Commands for the autoproxy system")
+                .setDescription("To view commands for a specific category, use `j!help <Category>`.\n\n**Categories:**\n• `Global` - Core proxy and management commands\n• `Editing` - Commands to modify your Jesters\n• `Autoproxy` - Commands for the autoproxy system\n• `Reactions` - Modify Jester messages with reactions")
                 .setColor('#9b59b6')
                 .setFooter({ text: 'Fluxer Jester Bot' });
             return message.reply({ embeds: [embed] });
@@ -542,6 +542,13 @@ client.on(Events.MessageCreate, async (message) => {
                 .addFields(
                     { name: '📌 Stick (Autoproxy)', value: '`j!stick <Jester Name> <Channel>`\nExample: `j!s "My Jester" #general`\nSends messages in that channel as the Jester automatically without needing the prefix.' },
                     { name: '📌 Unstick', value: '`j!unstick <Channel>`\nExample: `j!u #general`\nRemoves the autoproxy from the channel.' }
+                );
+        } else if (category === 'reactions' || category === 'reaction') {
+            helpEmbed.setTitle(`🎭 Jester Bot Help - Reactions`)
+                .setDescription("**Reactions:**\nYou can manage the messages sent by your Jesters by reacting to them directly.")
+                .addFields(
+                    { name: '❌ Delete Message', value: 'React with ❌ to a Jester\'s message to immediately delete it.' },
+                    { name: '✏️ Edit Message', value: 'React with ✏️ to a Jester\'s message to edit it. The bot will DM you the original message so you can fix typos and send the corrections directly back to the bot.' }
                 );
         } else {
             return sendEmbed(message, '❌ Unknown Category', "That category doesn't exist. Type `j!help` to see a list of categories.", '#f04747');
@@ -820,6 +827,134 @@ client.on(Events.MessageCreate, async (message) => {
                 } catch (sendErr) {
                     console.error('Also failed to send generic timeout warning:', sendErr.message);
                 }
+            }
+        }
+    }
+});
+
+// Reaction listener for deleting or editing Jester messages
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    if (user.bot) return;
+
+    // Fetch partials if needed
+    if (reaction && reaction.partial) {
+        try { await reaction.fetch(); } catch (e) { return; }
+    }
+
+    // Uncached messages do not have `reaction.message` populated
+    let message = reaction.message;
+    if (!message) {
+        try {
+            message = await reaction.fetchMessage();
+        } catch (e) {
+            console.error('Failed to fetch reaction message:', e.message);
+            return;
+        }
+    } else if (message.partial) {
+        try {
+            await message.fetch();
+        } catch (e) { return; }
+    }
+
+    // Only handle webhook messages
+    if (!message.webhookId) return;
+
+    const emojiName = reaction.emoji.name;
+    if (emojiName !== '❌' && emojiName !== '✏️') return;
+
+    // Fetch user jesters from tupperCache or API
+    let jesters = tupperCache.get(user.id);
+    if (!jesters) {
+        try {
+            const response = await axios.get(`${API_URL}/user/${user.id}`);
+            jesters = response.data;
+            tupperCache.set(user.id, jesters);
+            setTimeout(() => tupperCache.delete(user.id), 5 * 60 * 1000);
+        } catch (error) {
+            return;
+        }
+    }
+
+    if (!jesters || jesters.length === 0) return;
+
+    // Check if the webhook author name matches any of the user's jesters
+    const matchedJester = jesters.find(j => j.name === message.author.username);
+    if (!matchedJester) return;
+
+    // ❌ -> Delete message
+    if (emojiName === '❌') {
+        try {
+            await message.delete();
+        } catch (err) {
+            console.error('Failed to delete message via reaction:', err);
+        }
+    }
+    // ✏️ -> Edit message via DM
+    else if (emojiName === '✏️') {
+        try {
+            const dmChannel = await user.createDM();
+            await dmChannel.send(`\`\`\`\n${message.content}\n\`\`\`\n\nType the new message and send it to me to edit the original message`);
+
+            // Wait for user's response in DMs (30s) manually since awaitMessages doesn't exist in @fluxerjs
+            const newContent = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    client.removeListener(Events.MessageCreate, listener);
+                    reject(new Error('time'));
+                }, 30000);
+
+                const listener = async (msg) => {
+                    // Check if it's the correct user and in a DM channel (no guild)
+                    if (msg.author.id === user.id && !msg.guildId) {
+                        clearTimeout(timeout);
+                        client.removeListener(Events.MessageCreate, listener);
+                        resolve(msg.content);
+                    }
+                };
+                client.on(Events.MessageCreate, listener);
+            });
+
+            // Fetch the webhook to edit the message
+            // If the message is in a thread, the webhook belongs to the parent channel
+            let proxyChannel = message.channel;
+            let threadId = null;
+
+            if (proxyChannel && proxyChannel.isThread && proxyChannel.isThread()) {
+                threadId = proxyChannel.id;
+                proxyChannel = proxyChannel.parent;
+            }
+
+            if (!proxyChannel) {
+                await dmChannel.send('❌ Could not find the channel this message belongs to.');
+                return;
+            }
+
+            const webhooks = await proxyChannel.fetchWebhooks();
+            const webhook = webhooks.find(w => w.id === message.webhookId);
+
+            if (webhook && webhook.token) {
+                // @fluxerjs REST endpoint to edit webhook messages
+                let route = Routes.webhookExecute(webhook.id, webhook.token) + `/messages/${message.id}?wait=true`;
+                if (threadId) {
+                    route += `&thread_id=${threadId}`;
+                }
+
+                console.log(`[DEBUG Webhook Edit] Route: ${route}`);
+                console.log(`[DEBUG Webhook Edit] Webhook ID: ${webhook.id}, Message ID: ${message.id}`);
+
+                await client.rest.patch(route, {
+                    body: { content: newContent },
+                    auth: false
+                });
+                await dmChannel.send('✅ Message edited successfully!');
+            } else {
+                await dmChannel.send('❌ Cannot edit this message. (No webhook token available)');
+            }
+        } catch (err) {
+            if (err instanceof Map || err.size === 0 || (err.message && err.message.includes('time'))) {
+                user.send('⏳ Edit timed out (30 seconds limit reached).').catch(() => null);
+            } else {
+                console.error('Failed during message edit reaction:', err);
+                user.send('❌ An error occurred while editing the message.').catch(() => null);
             }
         }
     }

@@ -295,7 +295,7 @@
         <div class="nav-container">
             <a href="/" class="brand">🎭 <em>Jester</em></a>
             <ul class="nav-links" style="list-style:none;display:flex;align-items:center;gap:1.5rem;">
-                {% if request.session.fluxer_id %}
+                {% if user.is_authenticated %}
                 <li><a href="/profile/">Profile</a></li>
                 <li>
                     <form action="/logout/" method="post" style="margin:0;">

@@ -32,7 +32,7 @@ class FluxerOAuth2Adapter(OAuth2Adapter):
         user_id = extra_data.get('id')
         if avatar_hash and user_id:
             extra_data['avatar_url'] = (
-                f'https://cdn.fluxerstatic.com/avatars/{user_id}/{avatar_hash}.png'
+                f'https://fluxerusercontent.com/avatars/{user_id}/{avatar_hash}.webp?size=160'
             )
         else:
             extra_data['avatar_url'] = None
