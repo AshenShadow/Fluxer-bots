@@ -1,0 +1,33 @@
+{% extends "jesters/base.html" %}
+{% block title %}Login – Jester Bot{% endblock %}
+
+{% block full_page %}
+<div class="page-center">
+    <div style="text-align:center; max-width:420px; width:100%;">
+        <!-- Logo -->
+        <div style="margin-bottom:2.5rem;">
+            <div style="width:72px;height:72px;border-radius:18px;background:var(--primary);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:2rem;margin:0 auto 1rem;
+                        box-shadow:0 0 32px rgba(155,89,182,0.5);">🎭</div>
+            <h1 style="font-size:2rem;font-weight:700;margin-bottom:0.4rem;">Jester Bot</h1>
+            <p style="color:var(--text-muted);font-size:0.95rem;">Manage your roleplay proxies on Fluxer</p>
+        </div>
+
+        <!-- Card -->
+        <div class="card">
+            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">
+                Sign in with your Fluxer account to get started.
+            </p>
+            <a href="{% url 'fluxer_login' %}" class="btn btn-primary"
+                style="width:100%;justify-content:center;font-size:1.05rem;padding:0.85rem;">
+                🔑 &nbsp;Login with Fluxer
+            </a>
+        </div>
+
+        <p style="margin-top:1.25rem;color:var(--text-muted);font-size:0.78rem;">
+            By logging in you allow Jester Bot to read your Fluxer account info.
+        </p>
+    </div>
+</div>
+{% endblock %}

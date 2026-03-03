@@ -23,3 +23,14 @@ class Jester(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.prefix})"
+
+class Autoproxy(models.Model):
+    user_id = models.CharField(max_length=50, help_text="Fluxer User ID")
+    channel_id = models.CharField(max_length=50, help_text="Fluxer Channel ID")
+    jester = models.ForeignKey(Jester, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user_id', 'channel_id')
+
+    def __str__(self):
+        return f"User {self.user_id} -> {self.jester.name} in {self.channel_id}"

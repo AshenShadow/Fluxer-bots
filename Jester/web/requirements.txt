@@ -1,0 +1,6 @@
+django
+django-ninja
+django-allauth
+django-cors-headers
+requests
+Pillow

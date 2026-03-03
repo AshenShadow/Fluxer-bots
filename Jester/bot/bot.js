@@ -300,35 +300,252 @@ client.on(Events.MessageCreate, async (message) => {
         return sendEmbed(message, '❌ Not Found', `Jester "${query}" doesn't exist.`, '#f04747');
     }
 
+    // Command: j!rename or j!re
+    if (/^j!(rename|re)(\s|$)/i.test(message.content)) {
+        const argsStr = message.content.replace(/^j!(rename|re)\s*/i, '').trim();
+        const args = argsStr.match(/(?:[^\s"]+|"[^"]*")+/g);
+        if (!args || args.length < 2) {
+            return sendEmbed(message, '📝 Rename Jester', "Usage: `j!rename <OldName> <NewName>`\nExample: `j!rename \"Old Name\" \"New Name\"`");
+        }
+        const oldName = args[0].replace(/^"|"$/g, '');
+        const newName = args[1].replace(/^"|"$/g, '');
+
+        let jesters = tupperCache.get(message.author.id);
+        if (!jesters) {
+            try {
+                const response = await axios.get(`${API_URL}/user/${message.author.id}`);
+                jesters = response.data;
+                tupperCache.set(message.author.id, jesters);
+                setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters.", '#f04747');
+            }
+        }
+
+        const target = oldName.toLowerCase();
+        const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
+
+        if (!exactMatch) {
+            return sendEmbed(message, '❌ Not Found', `Jester "**${oldName}**" does not exist.`, '#f04747');
+        }
+
+        try {
+            await axios.patch(`${API_URL}/${exactMatch.id}`, { name: newName });
+            tupperCache.delete(message.author.id);
+            return sendEmbed(message, '✅ Renamed', `Successfully renamed **${exactMatch.name}** to **${newName}**.`);
+        } catch (error) {
+            return sendEmbed(message, '❌ Error', "Failed to rename Jester.", '#f04747');
+        }
+    }
+
+    // Command: j!prefix or j!pre
+    if (/^j!(prefix|pre)(\s|$)/i.test(message.content)) {
+        const argsStr = message.content.replace(/^j!(prefix|pre)\s*/i, '').trim();
+        const args = argsStr.match(/(?:[^\s"]+|"[^"]*")+/g);
+        if (!args || args.length < 2) {
+            return sendEmbed(message, '📝 Change Prefix', "Usage: `j!prefix <Name> <NewPrefix:msg>`\nExample: `j!prefix \"My Jester\" new:msg`");
+        }
+        const name = args[0].replace(/^"|"$/g, '');
+        let newTrigger = args[1].replace(/^"|"$/g, '');
+
+        const triggerMatch = newTrigger.match(/^(.+?)([^a-zA-Z0-9\s])(msg)$/i);
+        if (!triggerMatch) {
+            return sendEmbed(message, '❌ Prefix Error', "Invalid format. It must contain a separator followed by `msg`.\nExample: `new:msg`", '#f04747');
+        }
+        const newPrefix = triggerMatch[1];
+
+        let jesters = tupperCache.get(message.author.id);
+        if (!jesters) {
+            try {
+                const response = await axios.get(`${API_URL}/user/${message.author.id}`);
+                jesters = response.data;
+                tupperCache.set(message.author.id, jesters);
+                setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters.", '#f04747');
+            }
+        }
+
+        const target = name.toLowerCase();
+        const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
+
+        if (!exactMatch) {
+            return sendEmbed(message, '❌ Not Found', `Jester "**${name}**" does not exist.`, '#f04747');
+        }
+
+        try {
+            await axios.patch(`${API_URL}/${exactMatch.id}`, { prefix: newPrefix });
+            tupperCache.delete(message.author.id);
+            return sendEmbed(message, '✅ Prefix Changed', `Successfully changed prefix for **${exactMatch.name}** to \`${newPrefix}:\` (trigger: \`${newTrigger}\`).`);
+        } catch (error) {
+            return sendEmbed(message, '❌ Error', "Prefix may already be in use or an error occurred.", '#f04747');
+        }
+    }
+
+    // Command: j!avatar or j!a
+    if (/^j!(avatar|a)(\s|$)/i.test(message.content)) {
+        let queryName = message.content.replace(/^j!(avatar|a)\s*/i, '').trim();
+        if (queryName.startsWith('"') && queryName.endsWith('"')) {
+            queryName = queryName.slice(1, -1);
+        } else if (queryName.startsWith("'") && queryName.endsWith("'")) {
+            queryName = queryName.slice(1, -1);
+        }
+
+        if (!queryName) {
+            return sendEmbed(message, '🖼️ Change Avatar', "Usage: `j!avatar <Name>` (Attach an image file!)\nExample: `j!a \"My Jester\"`");
+        }
+
+        const attachment = message.attachments.first();
+        if (!attachment) {
+            return sendEmbed(message, '❌ Missing Image', "You must attach an image file to this message to change the avatar.", '#f04747');
+        }
+
+        let jesters = tupperCache.get(message.author.id);
+        if (!jesters) {
+            try {
+                const response = await axios.get(`${API_URL}/user/${message.author.id}`);
+                jesters = response.data;
+                tupperCache.set(message.author.id, jesters);
+                setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters.", '#f04747');
+            }
+        }
+
+        const target = queryName.toLowerCase();
+        const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
+
+        if (!exactMatch) {
+            return sendEmbed(message, '❌ Not Found', `Jester "**${queryName}**" does not exist.`, '#f04747');
+        }
+
+        try {
+            const form = new FormData();
+            const imageResponse = await axios.get(attachment.url, { responseType: 'stream' });
+            form.append('avatar', imageResponse.data, attachment.filename || attachment.name || 'avatar.png');
+
+            await axios.post(`${API_URL}/${exactMatch.id}/avatar`, form, {
+                headers: { ...form.getHeaders() }
+            });
+
+            // Delete cache
+            tupperCache.delete(message.author.id);
+            if (exactMatch.avatar_url) {
+                uploadedAvatarUrls.delete(exactMatch.avatar_url);
+            }
+            return sendEmbed(message, '✅ Avatar Changed', `Successfully updated the avatar for **${exactMatch.name}**.`);
+        } catch (error) {
+            return sendEmbed(message, '❌ Error', "Failed to upload new avatar image.", '#f04747');
+        }
+    }
+
+    // Command: j!stick or j!s
+    if (/^j!(stick|s)(\s|$)/i.test(message.content)) {
+        const argsStr = message.content.replace(/^j!(stick|s)\s*/i, '').trim();
+        const args = argsStr.match(/(?:[^\s"]+|"[^"]*")+/g);
+        if (!args || args.length < 2) {
+            return sendEmbed(message, '📌 Autoproxy (Stick)', "Usage: `j!stick <Jester Name> <Channel>`\nExample: `j!stick \"My Jester\" #general`");
+        }
+
+        const name = args[0].replace(/^"|"$/g, '');
+        const channelArg = args[1].replace(/^"|"$/g, '');
+
+        // Extract channel ID from <#id> format or just accept the id
+        const channelMatch = channelArg.match(/<#(\d+)>/);
+        const targetChannelId = channelMatch ? channelMatch[1] : channelArg;
+
+        let jesters = tupperCache.get(message.author.id);
+        if (!jesters) {
+            try {
+                const response = await axios.get(`${API_URL}/user/${message.author.id}`);
+                jesters = response.data;
+                tupperCache.set(message.author.id, jesters);
+                setTimeout(() => tupperCache.delete(message.author.id), 5 * 60 * 1000);
+            } catch (error) {
+                return sendEmbed(message, '❌ Error', "Failed to fetch your Jesters.", '#f04747');
+            }
+        }
+
+        const target = name.toLowerCase();
+        const exactMatch = jesters.find(j => j.name.toLowerCase() === target);
+
+        if (!exactMatch) {
+            return sendEmbed(message, '❌ Not Found', `Jester "**${name}**" does not exist.`, '#f04747');
+        }
+
+        try {
+            await axios.post(`${API_URL}/autoproxy/${message.author.id}/${targetChannelId}`, { name: exactMatch.name });
+            return sendEmbed(message, '📌 Autoproxy Set', `Successfully stuck **${exactMatch.name}** in <#${targetChannelId}>. Any message you send there without a prefix will automatically proxy as them.`);
+        } catch (error) {
+            return sendEmbed(message, '❌ Error', "Failed to set up autoproxy.", '#f04747');
+        }
+    }
+
+    // Command: j!unstick or j!u
+    if (/^j!(unstick|u)(\s|$)/i.test(message.content)) {
+        const channelArg = message.content.replace(/^j!(unstick|u)\s*/i, '').trim();
+        if (!channelArg) {
+            return sendEmbed(message, '📌 Remove Autoproxy', "Usage: `j!unstick <Channel>`\nExample: `j!u #general`");
+        }
+
+        const channelMatch = channelArg.match(/<#(\d+)>/);
+        const targetChannelId = channelMatch ? channelMatch[1] : channelArg;
+
+        try {
+            await axios.delete(`${API_URL}/autoproxy/${message.author.id}/${targetChannelId}`);
+            return sendEmbed(message, '✅ Autoproxy Removed', `Removed autoproxy for <#${targetChannelId}>.`);
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                return sendEmbed(message, 'ℹ️ Not Stuck', `You don't have an autoproxy set for <#${targetChannelId}>.`);
+            }
+            return sendEmbed(message, '❌ Error', "Failed to remove autoproxy.", '#f04747');
+        }
+    }
+
     // Command: j!help or j!h
     if (/^j!(help|h)(\s|$)/i.test(message.content)) {
+        const category = message.content.replace(/^j!(help|h)\s*/i, '').trim().toLowerCase();
+
+        if (!category) {
+            const embed = new EmbedBuilder()
+                .setTitle(`🎭 Jester Bot Help`)
+                .setDescription("To view commands for a specific category, use `j!help <Category>`.\n\n**Categories:**\n• `Global` - Core proxy and management commands\n• `Editing` - Commands to modify your Jesters\n• `Autoproxy` - Commands for the autoproxy system")
+                .setColor('#9b59b6')
+                .setFooter({ text: 'Fluxer Jester Bot' });
+            return message.reply({ embeds: [embed] });
+        }
+
         const helpEmbed = new EmbedBuilder()
-            .setTitle("🎭 Jester Bot Help")
-            .setDescription("Manage your roleplay proxies easily.")
             .setColor('#9b59b6')
-            .addFields(
-                {
-                    name: '✨ Create',
-                    value: '`j!create <Name> <Prefix:msg>`\nExample: `j!c "My Char" MC:msg`'
-                },
-                {
-                    name: '📜 List',
-                    value: '`j!list [page]` or `j!i` (no args)'
-                },
-                {
-                    name: 'ℹ️ Info',
-                    value: '`j!info <Name>`'
-                },
-                {
-                    name: '🗑️ Delete',
-                    value: '`j!delete <Name>`'
-                },
-                {
-                    name: '❓ Help',
-                    value: '`j!help`'
-                }
-            )
             .setFooter({ text: 'Fluxer Jester Bot' });
+
+        if (category === 'global' || category === 'core' || category === 'general') {
+            helpEmbed.setTitle(`🎭 Jester Bot Help - Global`)
+                .setDescription("Manage your roleplay proxies easily. **Global Commands:**")
+                .addFields(
+                    { name: '✨ Create', value: '`j!create <Name> <Prefix:msg>`\nExample: `j!c "My Char" MC:msg`' },
+                    { name: '📜 List', value: '`j!list [page]` or `j!l`' },
+                    { name: 'ℹ️ Info', value: '`j!info <Name>` or `j!i <Name>`' },
+                    { name: '🗑️ Delete', value: '`j!delete <Name>` or `j!d <Name>`' }
+                );
+        } else if (category === 'editing' || category === 'edit') {
+            helpEmbed.setTitle(`🎭 Jester Bot Help - Editing`)
+                .setDescription("**Editing Jesters:**")
+                .addFields(
+                    { name: '📝 Rename', value: '`j!rename <OldName> <NewName>`\nExample: `j!re "Old" "New"`' },
+                    { name: '📝 Change Prefix', value: '`j!prefix <Name> <NewPrefix:msg>`\nExample: `j!pre "My Jester" new:msg`' },
+                    { name: '🖼️ Change Avatar', value: '`j!avatar <Name>` or `j!a <Name>`\n**Attach an image to the message!**' }
+                );
+        } else if (category === 'autoproxy' || category === 'auto') {
+            helpEmbed.setTitle(`🎭 Jester Bot Help - Autoproxy`)
+                .setDescription("**Autoproxy Configuration:**")
+                .addFields(
+                    { name: '📌 Stick (Autoproxy)', value: '`j!stick <Jester Name> <Channel>`\nExample: `j!s "My Jester" #general`\nSends messages in that channel as the Jester automatically without needing the prefix.' },
+                    { name: '📌 Unstick', value: '`j!unstick <Channel>`\nExample: `j!u #general`\nRemoves the autoproxy from the channel.' }
+                );
+        } else {
+            return sendEmbed(message, '❌ Unknown Category', "That category doesn't exist. Type `j!help` to see a list of categories.", '#f04747');
+        }
 
         return message.reply({ embeds: [helpEmbed] });
     }
@@ -358,12 +575,35 @@ client.on(Events.MessageCreate, async (message) => {
     if (!jesters || jesters.length === 0) return;
 
     const content = message.content;
-    const matchedJester = jesters.find(j => content.startsWith(j.prefix + ":") || content.startsWith(j.prefix + " :"));
+    let matchedJester = jesters.find(j => content.startsWith(j.prefix + ":") || content.startsWith(j.prefix + " :"));
+
+    // Autoproxy Check (if no prefix match)
+    if (!matchedJester) {
+        try {
+            const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+            if (proxyChannel) {
+                const autoRes = await axios.get(`${API_URL}/autoproxy/${message.author.id}`);
+                const activeAutoproxies = autoRes.data;
+                const channelAutoproxy = activeAutoproxies.find(ap => ap.channel_id === proxyChannel.id);
+
+                if (channelAutoproxy) {
+                    matchedJester = jesters.find(j => j.id === channelAutoproxy.jester_id);
+                }
+            }
+        } catch (autoErr) {
+            // Ignore if autoproxy lookup fails or user has 0 autoproxies
+        }
+    }
 
     if (matchedJester) {
-        let innerContent = content.substring(matchedJester.prefix.length).trim();
-        while (innerContent.startsWith(":")) {
-            innerContent = innerContent.substring(1).trim();
+        let innerContent = content;
+
+        // Only strip prefix if it actually started with the prefix
+        if (content.startsWith(matchedJester.prefix + ":") || content.startsWith(matchedJester.prefix + " :")) {
+            innerContent = content.substring(matchedJester.prefix.length).trim();
+            while (innerContent.startsWith(":")) {
+                innerContent = innerContent.substring(1).trim();
+            }
         }
 
         try {
@@ -492,7 +732,22 @@ client.on(Events.MessageCreate, async (message) => {
                         const refMsg = await proxyChannel.messages.fetch(msgId);
 
                         if (refMsg) {
-                            const replyToUser = refMsg.author ? `<@${refMsg.author.id}>` : 'Unknown User';
+                            let replyToUser = refMsg.author ? `<@${refMsg.author.id}>` : 'Unknown User';
+
+                            // If replying to a webhook (another Jester), find the actual owner
+                            if (refMsg.author && refMsg.author.bot) {
+                                try {
+                                    const allRes = await axios.get(`${API_URL}/all`);
+                                    const allJesters = allRes.data;
+                                    const matchedJesterUser = allJesters.find(j => j.name === refMsg.author.username);
+                                    if (matchedJesterUser) {
+                                        replyToUser = `<@${matchedJesterUser.user_id}>`;
+                                    }
+                                } catch (e) {
+                                    console.warn('Failed to fetch jester owners for reply resolution:', e.message);
+                                }
+                            }
+
                             let replyContent = refMsg.content || '*[Attachment/Embed]*';
 
                             // Truncate if too long (Discord limits)
@@ -502,13 +757,13 @@ client.on(Events.MessageCreate, async (message) => {
                             // Escape quotes or special chars if needed, but usually simple quoting is fine
                             replyContent = replyContent.replace(/\n/g, ' '); // Flatten newlines for the quote
 
-                            // Update the content to include the manual reply block
-                            webhookBody.content = `(Reply to: ${replyToUser})\n> ${replyContent}\n\n${webhookBody.content}`;
+                            // Update the content to include the manual reply block without the extra line and wrapper
+                            webhookBody.content = `${replyToUser}\n> ${replyContent}\n${webhookBody.content}`;
                         }
                     } catch (fetchErr) {
                         console.warn('Failed to fetch referenced message for reply formatting:', fetchErr.message);
                         // Fallback if fetch fails (e.g. message deleted or not found)
-                        webhookBody.content = `(Reply to: Unknown)\n> *Message could not be loaded*\n\n${webhookBody.content}`;
+                        webhookBody.content = `<@Unknown>\n> *Message could not be loaded*\n${webhookBody.content}`;
                     }
                 }
             }
@@ -523,18 +778,49 @@ client.on(Events.MessageCreate, async (message) => {
                     auth: false
                 });
                 console.log('[DEBUG v3.5] Webhook executed successfully. Response:', JSON.stringify(response, null, 2));
+
+                // Only delete the original message if the webhook succeeds
+                try {
+                    await message.delete();
+                } catch (delErr) {
+                    console.warn('Failed to delete original message:', delErr.message);
+                }
+
             } catch (webhookErr) {
                 console.error('[DEBUG v3.5] Webhook execution failed:', webhookErr);
-            }
-            // Delete original message
-            try {
-                await message.delete();
-            } catch (delErr) {
-                console.warn('Failed to delete original message:', delErr.message);
+
+                // Try to infer status/code safely
+                const errStatus = webhookErr.status || webhookErr.statusCode;
+                const errCode = webhookErr.code || (webhookErr.rawError ? webhookErr.rawError.code : null);
+
+                // Handle 504 Gateway Timeout or specifically the FluxerAPIError code
+                if (errStatus === 504 || errCode === 'GATEWAY_TIMEOUT' || errCode === 504 || webhookErr.message?.includes('Gateway timeout')) {
+                    try {
+                        const errMsg = await proxyChannel.send(`⚠️ **Jester Timeout:** <@${message.author.id}>, your message as \`${matchedJester.name}\` encountered a 504 Gateway Timeout while sending to Fluxer.`);
+                        // Auto-delete to keep chat clean
+                        setTimeout(() => errMsg.delete().catch(() => { }), 15000);
+                    } catch (e) {
+                        console.error('Failed to send timeout warning message:', e.message);
+                    }
+                }
             }
 
         } catch (err) {
             console.error('Error proxying message:', err);
+            // Catch edge cases where FluxerAPIError bubbles up
+            const errStatus = err.status || err.statusCode;
+            const errCode = err.code || (err.rawError ? err.rawError.code : null);
+            if (errStatus === 504 || errCode === 'GATEWAY_TIMEOUT' || errCode === 504 || err.message?.includes('Gateway timeout')) {
+                try {
+                    const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+                    if (proxyChannel) {
+                        const errMsg = await proxyChannel.send(`⚠️ **Jester Timeout:** <@${message.author.id}>, your message as \`${matchedJester?.name || 'Unknown'}\` encountered a 504 Gateway Timeout.`);
+                        setTimeout(() => errMsg.delete().catch(() => { }), 15000);
+                    }
+                } catch (sendErr) {
+                    console.error('Also failed to send generic timeout warning:', sendErr.message);
+                }
+            }
         }
     }
 });

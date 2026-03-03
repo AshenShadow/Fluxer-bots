@@ -1,0 +1,65 @@
+{% extends "jesters/base.html" %}
+{% block title %}Profile – Jester Bot{% endblock %}
+
+{% block content %}
+<!-- Profile card -->
+<div class="card" style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;">
+    {% if avatar_url %}
+    <img src="{{ avatar_url }}" alt="avatar"
+        style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);">
+    {% else %}
+    <div style="width:80px;height:80px;border-radius:50%;background:var(--primary);
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:2rem;font-weight:700;border:3px solid var(--primary);">
+        {{ fluxer_tag|slice:":1"|upper }}
+    </div>
+    {% endif %}
+    <div>
+        <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.25rem;">
+            {{ display_name|default:fluxer_tag }}
+        </h2>
+        {% if display_name %}
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.4rem;">{{ fluxer_tag }}</p>
+        {% endif %}
+        <span class="tag">ID: {{ fluxer_id }}</span>
+    </div>
+</div>
+
+<!-- Jesters section -->
+<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+        <h3 style="font-size:1.1rem;font-weight:600;">Your Jesters</h3>
+        <span style="color:var(--text-muted);font-size:0.85rem;">{{ jesters|length }} total</span>
+    </div>
+    <div class="divider"></div>
+
+    {% if jesters %}
+    <div class="jester-grid">
+        {% for jester in jesters %}
+        <div class="jester-card">
+            {% if jester.discord_avatar_url or jester.avatar %}
+            <img src="{{ jester.discord_avatar_url|default:jester.avatar.url }}" alt="{{ jester.name }}"
+                class="jester-avatar">
+            {% else %}
+            <div class="jester-placeholder">{{ jester.name|slice:":1"|upper }}</div>
+            {% endif %}
+            <div style="overflow:hidden;">
+                <p style="font-weight:600;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    {{ jester.name }}
+                </p>
+                <p style="color:var(--text-muted);font-size:0.8rem;">
+                    Prefix: <code style="color:var(--primary-h);">{{ jester.prefix }}</code>
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);text-align:center;padding:2rem 0;">
+        No Jesters yet! Use <code
+            style="background:var(--surface-2);padding:0.1rem 0.4rem;border-radius:4px;">j!create</code> in Fluxer to
+        make one.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}
