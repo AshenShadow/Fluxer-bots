@@ -1,0 +1,10 @@
+[
+  {
+    "testName": "Test 1: Normal properties",
+    "status": "Invalid Session"
+  },
+  {
+    "testName": "Test 2: Modded properties",
+    "status": "Timeout"
+  }
+]

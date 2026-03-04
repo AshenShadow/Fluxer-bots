@@ -10,8 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const client = new Client({
-    intents: 32767,
-    waitForGuilds: true,
+    intents: 0,
+    suppressIntentWarning: true,
 });
 
 const API_URL = 'http://127.0.0.1:8000/api/jesters';
@@ -25,6 +25,10 @@ client.on(Events.Ready, () => {
     // client.user might be undefined in some versions of Fluxer if not fully ready, but typically it is.
     console.log(`Logged in as ${client.user ? client.user.tag : 'Bot'}!`);
 });
+
+client.on(Events.Error, (err) => console.error('[BOT ERROR]', err?.message ?? err));
+client.on(Events.Debug, (msg) => console.log('[DEBUG]', msg));
+
 
 // Helper to send embeds
 const sendEmbed = (message, title, description, color = '#9b59b6') => {

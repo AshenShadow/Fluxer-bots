@@ -1,0 +1,12 @@
+[
+  {
+    "testName": "With Bot Prefix",
+    "status": "Invalid Session",
+    "extra": false
+  },
+  {
+    "testName": "Different Properties",
+    "status": "Timeout",
+    "extra": null
+  }
+]

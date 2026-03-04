@@ -1,0 +1,30 @@
+[
+  "WebSocket connected",
+  {
+    "received": {
+      "d": {
+        "heartbeat_interval": 41250
+      },
+      "op": 10
+    }
+  },
+  {
+    "sent": {
+      "op": 2,
+      "d": {
+        "token": "1473229591074357261.0zLFo3tZXZ9jTaxg5eaBcD-5dQV9CQq-EfpI0w3z10E",
+        "properties": {
+          "os": "windows",
+          "browser": "fluxerjs",
+          "device": "fluxerjs"
+        }
+      }
+    }
+  },
+  {
+    "received": {
+      "d": false,
+      "op": 9
+    }
+  }
+]
