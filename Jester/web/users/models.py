@@ -13,6 +13,8 @@ class FluxerUser(models.Model):
     display_name = models.CharField(max_length=100, blank=True, default='')
     avatar_url = models.URLField(blank=True, default='')
     access_token = models.TextField(blank=True, default='')
+    is_admin = models.BooleanField(default=False)
+    is_moderator = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

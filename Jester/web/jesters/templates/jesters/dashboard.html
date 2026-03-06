@@ -16,46 +16,56 @@
     /* Override base.html container */
     .main-container {
         padding: 0 !important;
-        max-width: none !important;
-        margin: 0 !important;
-        height: calc(100vh - 60px);
-        /* Subtract navbar */
+        max-width: 1400px !important;
+        margin: 40px auto 20px auto !important;
+        height: calc(100vh - 120px);
         display: flex;
-        background-color: var(--bg);
+        flex-direction: column;
+        background: rgba(30, 22, 40, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(155, 89, 182, 0.1);
+        overflow: hidden;
     }
 
     [v-cloak] {
         display: none;
     }
 
-    /* Layout structure matching previous design */
     #app {
         width: 100%;
         height: 100%;
+        flex: 1;
         display: flex;
+        min-height: 0;
     }
 
-    /* Sidebar */
     .tb-sidebar {
         width: 300px;
-        background-color: var(--surface);
+        background-color: rgba(20, 15, 25, 0.7);
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
+        height: 100%;
         user-select: none;
-        border-right: 1px solid rgba(155, 89, 182, 0.15);
+        border-right: 1px solid rgba(155, 89, 182, 0.2);
     }
 
     .tb-sidebar-header {
-        height: 48px;
-        background-color: rgba(155, 89, 182, 0.2);
+        flex: 0 0 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), transparent);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 20px;
         color: #fff;
-        font-weight: 600;
-        font-size: 14px;
+        font-weight: 700;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         border-bottom: 1px solid rgba(155, 89, 182, 0.3);
     }
 
@@ -76,40 +86,70 @@
         opacity: 1;
     }
 
+    .tb-sidebar-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
     .tb-list {
         flex: 1;
         overflow-y: auto;
         padding-top: 8px;
     }
 
-    /* Scrollbar */
-    .tb-list::-webkit-scrollbar {
-        width: 8px;
-        background-color: var(--bg);
-    }
-
-    .tb-list::-webkit-scrollbar-thumb {
-        background-color: var(--surface-2);
-        border-radius: 4px;
-    }
-
     .tb-item {
         display: flex;
         align-items: center;
-        padding: 8px 16px;
+        padding: 16px 20px;
+        margin: 0 16px 16px 16px;
         cursor: pointer;
         color: #b9bbbe;
+        background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        position: relative;
+    }
+
+    /* Decorative Card Elements */
+    .tb-item::before,
+    .tb-item::after {
+        content: '♦';
+        position: absolute;
+        font-size: 1rem;
+        color: rgba(155, 89, 182, 0.4);
+        pointer-events: none;
+    }
+
+    .tb-item::before {
+        top: 6px;
+        left: 8px;
+    }
+
+    .tb-item::after {
+        bottom: 6px;
+        right: 8px;
+        transform: rotate(180deg);
     }
 
     .tb-item:hover {
-        background-color: rgba(155, 89, 182, 0.1);
-        color: #dcddde;
+        transform: translateY(-4px) scale(1.02);
+        border-color: var(--primary-h);
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(155, 89, 182, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        z-index: 2;
     }
 
     .tb-item.active {
-        background-color: rgba(155, 89, 182, 0.25);
+        background: linear-gradient(135deg, rgba(155, 89, 182, 0.4), rgba(42, 31, 61, 0.9));
         color: #fff;
-        border-left: 3px solid var(--primary);
+        border-color: #9b59b6;
+        box-shadow: 0 10px 30px rgba(155, 89, 182, 0.4);
+        transform: scale(1.03);
+        z-index: 3;
     }
 
     .tb-caret {
@@ -150,13 +190,14 @@
     /* Main Content */
     .tb-main {
         flex: 1;
-        background-color: var(--bg);
+        background: transparent;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         position: relative;
         overflow-y: auto;
+        box-shadow: inset 40px 0 40px -40px rgba(0, 0, 0, 0.5);
     }
 
     /* Empty State */
@@ -207,9 +248,9 @@
         border-radius: 50%;
         object-fit: cover;
         background-color: var(--surface);
-        margin-right: 24px;
-        border: 4px solid var(--surface-2);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        margin-right: 32px;
+        border: 4px solid #9b59b6;
+        box-shadow: 0 0 20px rgba(155, 89, 182, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8);
     }
 
     .tb-avatar-large-placeholder {
@@ -219,14 +260,15 @@
         min-height: 128px;
         border-radius: 50%;
         background-color: var(--surface);
-        margin-right: 24px;
-        border: 4px solid var(--primary);
-        box-shadow: 0 8px 24px rgba(155, 89, 182, 0.2);
+        margin-right: 32px;
+        border: 4px solid #9b59b6;
+        box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 48px;
-        color: var(--primary-h);
+        color: #9b59b6;
+        text-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
     }
 
     .tb-info-group {
@@ -241,14 +283,15 @@
     }
 
     .tb-field {
-        background-color: var(--surface-2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        padding: 10px;
-        color: #dcddde;
-        font-family: 'Consolas', monospace;
+        background-color: rgba(20, 15, 25, 0.8);
+        border: 1px solid rgba(155, 89, 182, 0.4);
+        border-radius: 6px;
+        padding: 10px 14px;
+        color: #e0e0e0;
+        font-family: 'Consolas', 'Courier New', monospace;
         margin-bottom: 16px;
         display: inline-block;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
     .tb-label {
@@ -289,19 +332,21 @@
     /* Sub-page forms */
     .tb-input {
         width: 100%;
-        background-color: var(--bg);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        padding: 10px;
+        background-color: rgba(20, 15, 25, 0.8);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 6px;
+        padding: 12px;
         color: #fff;
         font-family: inherit;
         font-size: 0.95rem;
-        transition: border-color 0.2s;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
     .tb-input:focus {
         outline: none;
-        border-color: var(--primary);
+        border-color: #9b59b6;
+        box-shadow: 0 0 10px rgba(155, 89, 182, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
     .tb-btn {
@@ -359,32 +404,62 @@
 
     <!-- Sidebar -->
     <div class="tb-sidebar">
-        <div class="tb-sidebar-header">
-            <span>Your Jesters</span>
-            <div class="tb-sidebar-actions">
-                <a class="tb-action-btn" :href="'/create/?user_id=' + userId" title="Create New">+</a>
-                <span class="tb-action-btn">-</span>
-                <span class="tb-action-btn">⋮</span>
+        <div class="tb-sidebar-section">
+            <div class="tb-sidebar-header">
+                <span>Your Jesters</span>
+                <div class="tb-sidebar-actions">
+                    <a class="tb-action-btn" :href="'/create/?user_id=' + userId" title="Create New">+</a>
+                    <span class="tb-action-btn">-</span>
+                    <span class="tb-action-btn">⋮</span>
+                </div>
+            </div>
+
+            <div class="tb-list">
+                <div v-if="loading" style="padding:16px; text-align:center; color:#72767d;">Loading...</div>
+
+                <div v-else-if="jesters.length === 0"
+                    style="padding: 16px; text-align: center; color: #72767d; font-size: 12px;">
+                    No jesters.<br><a :href="'/create/?user_id=' + userId" style="color:#00b0f4;">Create one</a>
+                </div>
+
+                <div v-else v-for="jester in jesters" :key="jester.id" class="tb-item"
+                    :class="{ active: selectedJester && selectedJester.id === jester.id && currentView === 'jester' }"
+                    @click="selectJester(jester)">
+
+                    <span class="tb-caret">▶</span>
+
+                    <img v-if="getAvatar(jester)" :src="getAvatar(jester)" class="tb-avatar-small">
+                    <div v-else class="tb-avatar-small-placeholder">?</div>
+
+                    <span class="tb-name-small">[[ jester.name ]]</span>
+                </div>
             </div>
         </div>
 
-        <div class="tb-list">
-            <div v-if="loading" style="padding:16px; text-align:center; color:#72767d;">Loading...</div>
-
-            <div v-else-if="jesters.length === 0"
-                style="padding: 16px; text-align: center; color: #72767d; font-size: 12px;">
-                No jesters.<br><a :href="'/create/?user_id=' + userId" style="color:#00b0f4;">Create one</a>
+        <div class="tb-sidebar-section">
+            <div class="tb-sidebar-header" style="border-top: 1px solid rgba(155, 89, 182, 0.3);">
+                <span>Your Groups</span>
+                <div class="tb-sidebar-actions">
+                    <span class="tb-action-btn" @click="openGroupModal()" title="Create Group">+</span>
+                </div>
             </div>
 
-            <div v-else v-for="jester in jesters" :key="jester.id" class="tb-item"
-                :class="{ active: selectedJester && selectedJester.id === jester.id }" @click="selectJester(jester)">
+            <div class="tb-list">
+                <div v-if="loadingGroups" style="padding:16px; text-align:center; color:#72767d;">Loading...</div>
 
-                <span class="tb-caret">▶</span>
+                <div v-else-if="groups.length === 0"
+                    style="padding: 16px; text-align: center; color: #72767d; font-size: 12px;">
+                    No groups yet.
+                </div>
 
-                <img v-if="getAvatar(jester)" :src="getAvatar(jester)" class="tb-avatar-small">
-                <div v-else class="tb-avatar-small-placeholder">?</div>
-
-                <span class="tb-name-small">[[ jester.name ]]</span>
+                <div v-else v-for="group in groups" :key="group.id" class="tb-item"
+                    :class="{ active: selectedGroup && selectedGroup.id === group.id && currentView === 'group' }"
+                    @click="selectGroup(group)" style="padding: 12px 16px; margin: 0 16px 10px 16px;">
+                    <img v-if="getGroupImage(group)" :src="getGroupImage(group)" class="tb-avatar-small"
+                        style="border-radius:4px;">
+                    <div v-else class="tb-avatar-small-placeholder" style="border-radius:4px;">#</div>
+                    <span class="tb-name-small">[[ group.name ]]</span>
+                </div>
             </div>
         </div>
     </div>
@@ -393,20 +468,23 @@
     <div class="tb-main">
 
         <!-- Empty State -->
-        <div v-if="!selectedJester" class="tb-empty-state">
+        <div v-if="currentView === 'none'" class="tb-empty-state">
             <div class="tb-box-icon"></div>
-            <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">No jester selected!</h3>
+            <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">Select a Jester or Group</h3>
         </div>
 
-        <!-- Detail View -->
-        <div v-else class="tb-detail-view">
+        <!-- Detail View (Jester) -->
+        <div v-else-if="currentView === 'jester' && selectedJester" class="tb-detail-view">
             <div class="tb-detail-header">
                 <img v-if="getAvatar(selectedJester)" :src="getAvatar(selectedJester)" class="tb-avatar-large">
                 <div v-else class="tb-avatar-large-placeholder">?</div>
 
                 <div class="tb-info-group">
                     <div class="tb-label">Name</div>
-                    <div class="tb-name-large">[[ selectedJester.name ]]</div>
+                    <div class="tb-name-large">[[ selectedJester.display_name || selectedJester.name ]]</div>
+
+                    <div class="tb-label" style="margin-top:2px; font-weight:normal; color:#888;">[[ selectedJester.name
+                        ]]</div>
 
                     <div class="tb-label" style="margin-top:16px;">Prefix</div>
                     <div class="tb-field">[[ selectedJester.prefix ]]:text</div>
@@ -426,12 +504,31 @@
                 <div v-if="activeTab === 'info'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label class="tb-label">Name</label>
-                        <input type="text" v-model="editForm.name" class="tb-input" placeholder="Jester Name">
+                        <input type="text" v-model="editForm.name" class="tb-input"
+                            placeholder="Jester Name (Required)">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="tb-label">Display Name</label>
+                        <input type="text" v-model="editForm.display_name" class="tb-input"
+                            placeholder="Optional Display Name">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="tb-label">Description</label>
+                        <textarea v-model="editForm.description" class="tb-input" placeholder="Optional Description"
+                            style="min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="tb-label">Groups</label>
+                        <select multiple v-model="editForm.group_ids" class="tb-input" style="height: 100px;">
+                            <option v-for="g in groups" :key="g.id" :value="g.id">[[ g.name ]]</option>
+                        </select>
+                        <p style="font-size: 12px; color: #888; margin-top: 4px;">Hold Ctrl (Windows) or Cmd (Mac) to
+                            select multiple.</p>
                     </div>
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label class="tb-label">Prefix</label>
                         <input type="text" v-model="editForm.prefix" @input="sanitizePrefix" class="tb-input"
-                            placeholder="Jester Prefix">
+                            placeholder="Jester Prefix (Required)">
                     </div>
                     <button class="tb-btn tb-btn-primary" @click="saveInfo"
                         :disabled="isSaving || !editForm.name || !editForm.prefix">
@@ -493,6 +590,112 @@
                 </div>
             </div>
         </div>
+
+        <!-- Detail View (Group) -->
+        <div v-else-if="currentView === 'group' && selectedGroup" class="tb-detail-view">
+            <div class="tb-detail-header">
+                <img v-if="getGroupImage(selectedGroup)" :src="getGroupImage(selectedGroup)" class="tb-avatar-large"
+                    style="border-radius: 8px;">
+                <div v-else class="tb-avatar-large-placeholder" style="border-radius: 8px;">#</div>
+
+                <div class="tb-info-group">
+                    <div class="tb-label">Group Name</div>
+                    <div class="tb-name-large">[[ selectedGroup.name ]]</div>
+                    <div class="tb-label" style="margin-top:16px;">Description</div>
+                    <div class="tb-field" style="max-height: 100px; overflow-y: auto;">[[ selectedGroup.description ||
+                        'No description provided.' ]]</div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top:20px; width:100%;">
+                <div class="tb-tabs">
+                    <span class="tb-tab" :class="{active: activeTab === 'info'}" @click="activeTab = 'info'">Edit</span>
+                    <span class="tb-tab" :class="{active: activeTab === 'avatar'}"
+                        @click="activeTab = 'avatar'">Image</span>
+                    <span class="tb-tab" :class="{active: activeTab === 'settings'}"
+                        @click="activeTab = 'settings'">Settings</span>
+                </div>
+
+                <!-- GROUP INFO TAB -->
+                <div v-if="activeTab === 'info'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="tb-label">Name</label>
+                        <input type="text" v-model="editGroupForm.name" class="tb-input" placeholder="Group Name">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="tb-label">Description</label>
+                        <textarea v-model="editGroupForm.description" class="tb-input" placeholder="Description"
+                            style="min-height: 80px;"></textarea>
+                    </div>
+                    <button class="tb-btn tb-btn-primary" @click="saveGroupInfo"
+                        :disabled="isSaving || !editGroupForm.name">
+                        [[ isSaving ? 'Saving...' : 'Save Changes' ]]
+                    </button>
+                </div>
+
+                <!-- GROUP IMAGE TAB -->
+                <div v-if="activeTab === 'avatar'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <img v-if="groupImagePreview || getGroupImage(selectedGroup)"
+                            :src="groupImagePreview || getGroupImage(selectedGroup)" class="tb-avatar-large"
+                            style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; margin-right: 0; border-radius:8px;">
+                        <div v-else class="tb-avatar-large-placeholder"
+                            style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; margin-right: 0; font-size: 24px; border-radius:8px;">
+                            #</div>
+
+                        <div style="position: relative; overflow: hidden; display: inline-block;">
+                            <div class="tb-btn tb-btn-secondary">
+                                Choose Image
+                            </div>
+                            <input type="file" @change="handleGroupImageUpload" accept="image/*"
+                                style="opacity: 0; position: absolute; left: 0; top: 0; width: 100%; height: 100%; cursor: pointer;">
+                        </div>
+                    </div>
+                    <button class="tb-btn tb-btn-primary" @click="saveGroupImage"
+                        :disabled="!groupImageFile || isSaving">
+                        [[ isSaving ? 'Uploading...' : 'Upload Image' ]]
+                    </button>
+                </div>
+
+                <!-- GROUP SETTINGS TAB -->
+                <div v-if="activeTab === 'settings'" class="tab-content" style="animation: fadeUp 0.3s ease-out;">
+                    <div
+                        style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4
+                            style="color: #e74c3c; margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 700;">
+                            Danger Zone</h4>
+                        <p style="color: #b9bbbe; font-size: 0.9rem; margin-bottom: 1rem;">Deleting a Group will not
+                            delete the associated jesters, only the group itself.</p>
+                        <button class="tb-btn tb-btn-danger" @click="deleteGroup" :disabled="isSaving">
+                            Delete Group
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Creation Modal -->
+    <div v-if="showGroupModal"
+        style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <div
+            style="background: var(--surface); padding: 30px; border-radius: 12px; width: 400px; border: 1px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <h3 style="margin-top:0; color:#fff;">Create New Group</h3>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="tb-label">Name</label>
+                <input type="text" v-model="newGroup.name" class="tb-input" placeholder="Required">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="tb-label">Description</label>
+                <textarea v-model="newGroup.description" class="tb-input" placeholder="Optional"
+                    style="min-height: 80px;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="tb-btn tb-btn-secondary" @click="showGroupModal = false">Cancel</button>
+                <button class="tb-btn tb-btn-primary" @click="createGroup"
+                    :disabled="isSaving || !newGroup.name">Create</button>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -505,21 +708,48 @@
         data() {
             return {
                 userId: "{{ user_id }}",
+                currentView: 'none', // 'none', 'jester', 'group'
+
                 jesters: [],
                 selectedJester: null,
                 loading: true,
+
+                groups: [],
+                selectedGroup: null,
+                loadingGroups: true,
+
                 activeTab: 'info',
                 isSaving: false,
+
+                // Jester form
                 editForm: {
                     name: '',
-                    prefix: ''
+                    display_name: '',
+                    description: '',
+                    prefix: '',
+                    group_ids: []
                 },
                 avatarFile: null,
-                avatarPreview: null
+                avatarPreview: null,
+
+                // Group form
+                editGroupForm: {
+                    name: '',
+                    description: ''
+                },
+                groupImageFile: null,
+                groupImagePreview: null,
+
+                showGroupModal: false,
+                newGroup: {
+                    name: '',
+                    description: ''
+                }
             }
         },
         mounted() {
             this.fetchJesters();
+            this.fetchGroups();
         },
         methods: {
             sanitizePrefix() {
@@ -540,15 +770,42 @@
                     this.loading = false;
                 }
             },
+            async fetchGroups() {
+                this.loadingGroups = true;
+                try {
+                    const response = await fetch(`/api/jesters/groups/${this.userId}`);
+                    if (!response.ok) throw new Error('Failed to fetch groups');
+                    this.groups = await response.json();
+                } catch (error) {
+                    console.error("Error loading groups:", error);
+                } finally {
+                    this.loadingGroups = false;
+                }
+            },
             selectJester(jester) {
+                this.currentView = 'jester';
                 this.selectedJester = jester;
                 this.activeTab = 'info';
                 this.editForm = {
                     name: jester.name,
-                    prefix: jester.prefix
+                    display_name: jester.display_name || '',
+                    description: jester.description || '',
+                    prefix: jester.prefix,
+                    group_ids: [...jester.group_ids]
                 };
                 this.avatarFile = null;
                 this.avatarPreview = null;
+            },
+            selectGroup(group) {
+                this.currentView = 'group';
+                this.selectedGroup = group;
+                this.activeTab = 'info';
+                this.editGroupForm = {
+                    name: group.name,
+                    description: group.description || ''
+                };
+                this.groupImageFile = null;
+                this.groupImagePreview = null;
             },
             getAvatar(jester) {
                 if (jester.discord_avatar_url) return jester.discord_avatar_url;
@@ -574,7 +831,10 @@
                     const index = this.jesters.findIndex(j => j.id === updated.id);
                     if (index !== -1) {
                         this.jesters[index].name = updated.name;
+                        this.jesters[index].display_name = updated.display_name;
+                        this.jesters[index].description = updated.description;
                         this.jesters[index].prefix = updated.prefix;
+                        this.jesters[index].group_ids = updated.group_ids;
                         this.selectedJester = this.jesters[index];
                     }
                 } catch (e) {
@@ -639,8 +899,139 @@
 
                     this.jesters = this.jesters.filter(j => j.id !== this.selectedJester.id);
                     this.selectedJester = null;
+                    this.currentView = 'none';
                 } catch (e) {
                     console.error("Error deleting Jester!", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            // --- Group Methods ---
+            getGroupImage(group) {
+                if (group.discord_image_url) return group.discord_image_url;
+                if (group.image_url) return group.image_url;
+                return null;
+            },
+            openGroupModal() {
+                this.newGroup = { name: '', description: '' };
+                this.showGroupModal = true;
+            },
+            async createGroup() {
+                if (!this.newGroup.name) return;
+                this.isSaving = true;
+                try {
+                    const formData = new FormData();
+                    formData.append('user_id', this.userId);
+                    formData.append('name', this.newGroup.name);
+                    if (this.newGroup.description) formData.append('description', this.newGroup.description);
+
+                    const response = await fetch('/api/jesters/groups', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': this.getCsrfToken()
+                        }
+                    });
+                    if (!response.ok) throw new Error('Failed to create group');
+                    const created = await response.json();
+                    this.groups.push(created);
+                    this.showGroupModal = false;
+                    this.selectGroup(created);
+                } catch (e) {
+                    console.error("Error creating group:", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            async saveGroupInfo() {
+                if (!this.editGroupForm.name) return;
+                this.isSaving = true;
+                try {
+                    const response = await fetch(`/api/jesters/groups/${this.selectedGroup.id}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCsrfToken()
+                        },
+                        body: JSON.stringify(this.editGroupForm)
+                    });
+                    if (!response.ok) throw new Error('Failed to update group');
+                    const updated = await response.json();
+
+                    const index = this.groups.findIndex(g => g.id === updated.id);
+                    if (index !== -1) {
+                        this.groups[index].name = updated.name;
+                        this.groups[index].description = updated.description;
+                        this.selectedGroup = this.groups[index];
+                    }
+                } catch (e) {
+                    console.error("Error saving group info", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            handleGroupImageUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                this.groupImageFile = file;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    this.groupImagePreview = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+            async saveGroupImage() {
+                if (!this.groupImageFile) return;
+                this.isSaving = true;
+                try {
+                    const formData = new FormData();
+                    formData.append('image', this.groupImageFile);
+
+                    const response = await fetch(`/api/jesters/groups/${this.selectedGroup.id}/image`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': this.getCsrfToken()
+                        },
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error('Failed to upload image');
+                    const updated = await response.json();
+
+                    const index = this.groups.findIndex(g => g.id === updated.id);
+                    if (index !== -1) {
+                        this.groups[index].image_url = updated.image_url;
+                        this.groups[index].discord_image_url = updated.discord_image_url;
+                        this.selectedGroup = this.groups[index];
+                    }
+                    this.groupImageFile = null;
+                    this.groupImagePreview = null;
+                } catch (e) {
+                    console.error("Error uploading group image", e);
+                } finally {
+                    this.isSaving = false;
+                }
+            },
+            async deleteGroup() {
+                if (!confirm(`Are you sure you want to delete the group ${this.selectedGroup.name}?`)) return;
+                this.isSaving = true;
+                try {
+                    const response = await fetch(`/api/jesters/groups/${this.selectedGroup.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': this.getCsrfToken()
+                        }
+                    });
+                    if (!response.ok && response.status !== 204) throw new Error('Failed to delete group');
+
+                    this.groups = this.groups.filter(g => g.id !== this.selectedGroup.id);
+                    this.selectedGroup = null;
+                    this.currentView = 'none';
+                    // We must also remove this group ID from any jesters in the local state
+                    this.jesters.forEach(j => {
+                        j.group_ids = j.group_ids.filter(id => id !== this.selectedGroup?.id);
+                    });
+                } catch (e) {
+                    console.error("Error deleting Group!", e);
                 } finally {
                     this.isSaving = false;
                 }

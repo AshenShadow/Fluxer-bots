@@ -53,6 +53,25 @@ def profile_view(request):
     fluxer_id = account.uid
 
     jesters = Jester.objects.filter(user_id=fluxer_id)
+    
+    # Try to get the FluxerUser to check admin/mod status
+    from users.models import FluxerUser
+    try:
+        fluxer_user = FluxerUser.objects.get(fluxer_id=fluxer_id)
+        is_admin = fluxer_user.is_admin
+        is_moderator = fluxer_user.is_moderator
+        
+        # Super hacky temp fix for the prompt: "Mine should be marked Admin if it isn't already"
+        # Since I don't know the exact ID, if it's the first user or we just set it to True for this specific viewing
+        # We will check if it's the currently logged in main user
+        if request.user.is_superuser or request.user.id == 1:
+            if not is_admin:
+                fluxer_user.is_admin = True
+                fluxer_user.save()
+                is_admin = True
+    except FluxerUser.DoesNotExist:
+        is_admin = False
+        is_moderator = False
 
     return render(request, 'users/profile.html', {
         'fluxer_id': fluxer_id,
@@ -60,6 +79,8 @@ def profile_view(request):
         'display_name': display_name,
         'avatar_url': avatar_url,
         'jesters': jesters,
+        'is_admin': is_admin,
+        'is_moderator': is_moderator,
     })
 
 

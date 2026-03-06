@@ -14,83 +14,138 @@
         overflow: hidden;
     }
 
-    /* Background dynamic orb effects */
-    .bg-orb {
+    /* Theatrical Background & Spotlight */
+    .hero-section::before {
+        content: '';
         position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
+        inset: 0;
+        /* Harlequin Diamond Pattern */
+        background-color: transparent;
+        background-image:
+            linear-gradient(135deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(225deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(45deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(315deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%);
+        background-position: 40px 0, 40px 0, 0 0, 0 0;
+        background-size: 80px 80px;
+        background-repeat: repeat;
+        z-index: -2;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        /* Spotlight Effect */
+        background: radial-gradient(circle at 50% 30%, rgba(155, 89, 182, 0.2) 0%, rgba(26, 26, 46, 0.8) 60%, var(--bg) 100%);
         z-index: -1;
-        animation: floatOrb 10s ease-in-out infinite alternate;
+        pointer-events: none;
     }
 
-    .orb-1 {
-        width: 400px;
-        height: 400px;
-        background: rgba(155, 89, 182, 0.25);
-        top: 50%;
-        left: 20%;
-        transform: translate(-50%, -50%);
-    }
-
-    .orb-2 {
-        width: 350px;
-        height: 350px;
-        background: rgba(41, 128, 185, 0.25);
-        top: 60%;
-        right: 20%;
-        transform: translate(50%, -50%);
-        animation-delay: -5s;
-    }
-
-    @keyframes floatOrb {
-        0% {
-            transform: scale(1) translate(0, 0);
-        }
-
-        100% {
-            transform: scale(1.2) translate(40px, -40px);
-        }
+    .bg-watermark {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        top: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background-image: url('/media/site_assets/JesterBotv3.webp');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 50%;
+        opacity: 0.45;
+        z-index: -1;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0) 65%);
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0) 65%);
+        pointer-events: none;
     }
 
     .hero-title {
-        font-size: clamp(3rem, 8vw, 5rem);
+        font-size: clamp(3.5rem, 9vw, 6rem);
         font-weight: 800;
-        line-height: 1.1;
+        line-height: 1.05;
         margin-bottom: 1.5rem;
-        background: linear-gradient(135deg, #ffffff 0%, #d5b8ff 100%);
+        background: linear-gradient(135deg, #fff, #d5b8ff, #9b59b6);
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: -0.02em;
-        animation: fadeUp 1s ease-out;
+        text-shadow: 0 10px 30px rgba(155, 89, 182, 0.3);
+        animation: dropIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
     .hero-subtitle {
-        font-size: clamp(1.1rem, 3vw, 1.3rem);
-        color: #a0a0b0;
-        max-width: 650px;
-        margin-bottom: 2.5rem;
+        font-size: clamp(1.2rem, 3vw, 1.4rem);
+        color: #d1d1e0;
+        max-width: 700px;
+        margin-bottom: 3rem;
         line-height: 1.6;
-        animation: fadeUp 1s ease-out 0.2s backwards;
+        font-weight: 300;
+        animation: fadeUp 1s ease-out 0.3s forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes dropIn {
+        0% {
+            opacity: 0;
+            transform: translateY(-40px) scale(0.95);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes fadeUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .hero-actions {
         display: flex;
         gap: 1.5rem;
-        animation: fadeUp 1s ease-out 0.4s backwards;
+        animation: fadeUp 1s ease-out 0.5s forwards;
+        opacity: 0;
+        transform: translateY(20px);
         flex-wrap: wrap;
         justify-content: center;
+        perspective: 1000px;
     }
 
     .btn-hero {
-        padding: 1rem 2.5rem;
+        padding: 1.1rem 2.5rem;
         font-size: 1.15rem;
-        border-radius: 99px;
+        border-radius: 12px;
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         display: inline-flex;
         align-items: center;
         gap: 0.75rem;
         text-decoration: none;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transform: skewX(-20deg);
+        transition: all 0.6s ease;
+    }
+
+    .btn-hero:hover::before {
+        left: 150%;
     }
 
     .btn-hero svg {
@@ -104,166 +159,250 @@
     }
 
     .btn-hero-primary {
-        background: linear-gradient(135deg, var(--primary), #8e44ad);
+        background: linear-gradient(135deg, var(--primary), #732d91);
         color: #fff;
-        box-shadow: 0 10px 25px rgba(155, 89, 182, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 20px rgba(155, 89, 182, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
     .btn-hero-primary:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 15px 35px rgba(155, 89, 182, 0.5);
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(155, 89, 182, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
         color: #fff;
     }
 
     .btn-hero-secondary {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(30, 20, 40, 0.6);
         color: var(--text);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(155, 89, 182, 0.4);
         backdrop-filter: blur(10px);
     }
 
     .btn-hero-secondary:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateY(-3px);
-        color: var(--text);
+        background: rgba(155, 89, 182, 0.15);
+        transform: translateY(-4px);
+        color: #fff;
+        border-color: rgba(155, 89, 182, 0.8);
     }
 
+    /* Playing Card Features */
     .features-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
         margin-top: 6rem;
         width: 100%;
         max-width: 1100px;
-        animation: fadeUp 1s ease-out 0.6s backwards;
+        perspective: 1200px;
+    }
+
+    @media (max-width: 900px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+        }
     }
 
     .feature-card {
-        background: rgba(42, 31, 61, 0.6);
-        border: 1px solid rgba(155, 89, 182, 0.15);
-        border-radius: 24px;
-        padding: 2.5rem;
-        text-align: left;
-        backdrop-filter: blur(20px);
-        transition: transform 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
         position: relative;
-        overflow: hidden;
+        transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        transform-style: preserve-3d;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        opacity: 0;
+        animation: fadeUp 1s ease-out forwards;
+    }
+
+    /* Decorative Card Elements (Corners) */
+    .feature-card::before,
+    .feature-card::after {
+        content: '♦';
+        position: absolute;
+        font-size: 1.5rem;
+        color: rgba(155, 89, 182, 0.2);
     }
 
     .feature-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 100%;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
-        pointer-events: none;
+        top: 10px;
+        left: 15px;
     }
 
-    .feature-card:hover {
-        transform: translateY(-8px);
-        background: rgba(58, 45, 80, 0.7);
-        border-color: rgba(155, 89, 182, 0.4);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    .feature-card::after {
+        bottom: 10px;
+        right: 15px;
+        transform: rotate(180deg);
+    }
+
+    /* Fanning / 3D Effect */
+    @media (min-width: 901px) {
+        .feature-card:first-child {
+            transform: rotateY(15deg) rotateZ(-2deg) translateZ(-40px);
+            animation-delay: 0.6s;
+        }
+
+        .feature-card:nth-child(2) {
+            transform: translateZ(20px);
+            animation-delay: 0.8s;
+            z-index: 2;
+        }
+
+        .feature-card:last-child {
+            transform: rotateY(-15deg) rotateZ(2deg) translateZ(-40px);
+            animation-delay: 1.0s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px) rotateY(0) rotateZ(0) translateZ(50px) scale(1.05);
+            border-color: var(--primary-h);
+            box-shadow: 0 25px 50px rgba(155, 89, 182, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        /* When one card is hovered, dim others slightly */
+        .features-grid:hover .feature-card:not(:hover) {
+            opacity: 0.6;
+            transform: translateZ(-80px) scale(0.95);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .feature-card:nth-child(1) {
+            animation-delay: 0.6s;
+        }
+
+        .feature-card:nth-child(2) {
+            animation-delay: 0.8s;
+        }
+
+        .feature-card:nth-child(3) {
+            animation-delay: 1.0s;
+        }
     }
 
     .feature-icon-wrapper {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(155, 89, 182, 0.05));
-        border: 1px solid rgba(155, 89, 182, 0.3);
-        border-radius: 16px;
+        width: 70px;
+        height: 70px;
+        background: radial-gradient(circle at top left, rgba(195, 155, 211, 0.2), transparent);
+        border: 1px solid rgba(155, 89, 182, 0.5);
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1.5rem;
-        color: var(--primary-h);
+        margin: 0 auto 1.5rem auto;
+        color: #fff;
+        box-shadow: 0 0 20px rgba(155, 89, 182, 0.2);
+        transition: transform 0.5s, box-shadow 0.5s;
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 0 30px rgba(155, 89, 182, 0.5);
+        background: radial-gradient(circle at top left, rgba(195, 155, 211, 0.4), rgba(155, 89, 182, 0.1));
     }
 
     .feature-title {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        color: var(--text);
+        color: #fff;
+        line-height: 1.2;
     }
 
     .feature-text {
-        color: #a0a0b0;
+        color: #b3b3cc;
         font-size: 1.05rem;
         line-height: 1.6;
     }
 
-    @keyframes fadeUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     .glass-panel {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
+        background: rgba(42, 31, 61, 0.4);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        backdrop-filter: blur(12px);
         padding: 0.6rem 1.25rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
         border-radius: 99px;
-        animation: fadeUp 1s ease-out forwards;
+        animation: dropIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     .glass-panel span {
         font-size: 0.9rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
-        background: linear-gradient(90deg, #d5b8ff, #ffffff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #e0c3fc;
+    }
+
+    .glass-panel svg {
+        color: #e0c3fc;
     }
 </style>
 
 <div class="hero-section">
-    <!-- Ambient blurred background shapes -->
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
+    <!-- Watermark Logo -->
+    <div class="bg-watermark"></div>
 
     <div class="glass-panel">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" style="color: #c39bd3">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+            <line x1="16" y1="8" x2="2" y2="22"></line>
+            <line x1="17.5" y1="15" x2="9" y2="6.5"></line>
         </svg>
-        <span>The Future of Roleplay Proxies</span>
+        <span>The Stage is Set</span>
     </div>
 
-    <h1 class="hero-title">Bring Your Characters<br>To Life</h1>
+    <h1 class="hero-title">Step Into<br>Character</h1>
     <p class="hero-subtitle">
-        Manage your roleplay proxies seamlessly. Create, switch, and express yourself with a next-generation dashboard
-        powered by Fluxer.
+        Curate your personas, pull the strings, and captivate your audience.<br>Jester's Mask is your ultimate roleplay
+        proxy dashboard.
     </p>
 
     <div class="hero-actions">
         {% if user.is_authenticated %}
         <a href="{% url 'profile' %}" class="btn-hero btn-hero-primary">
-            Go to Dashboard
+            Enter Dashboard
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"></path>
             </svg>
         </a>
+        <a href="https://web.fluxer.app/oauth2/authorize?client_id=1473229591074357261&scope=bot" target="_blank"
+            class="btn-hero btn-hero-secondary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Invite to Server
+        </a>
         {% else %}
         <a href="{% url 'login' %}" class="btn-hero btn-hero-primary">
-            Login with Fluxer
+            Take the Stage
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"></path>
             </svg>
+        </a>
+        <a href="https://web.fluxer.app/oauth2/authorize?client_id=1473229591074357261&scope=bot" target="_blank"
+            class="btn-hero btn-hero-secondary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Invite to Server
         </a>
         <a href="https://github.com/Fluxer-bots/Jester" target="_blank" class="btn-hero btn-hero-secondary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -272,48 +411,50 @@
                     d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
                 </path>
             </svg>
-            View GitHub
+            View Source
         </a>
         {% endif %}
     </div>
 
-    <!-- Features Grid -->
+    <!-- Playing Card Features Grid -->
     <div class="features-grid">
         <div class="feature-card">
             <div class="feature-icon-wrapper">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
             </div>
-            <h3 class="feature-title">Proxy Management</h3>
-            <p class="feature-text">Seamlessly organize and update all your roleplay characters in one centralized,
-                fluid interface.</p>
+            <h3 class="feature-title">Master of Puppets</h3>
+            <p class="feature-text">Orchestrate multiple personas effortlessly. Switch between characters without ever
+                dropping the act.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon-wrapper">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                    <polyline points="2 17 12 22 22 17"></polyline>
-                    <polyline points="2 12 12 17 22 12"></polyline>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
                 </svg>
             </div>
-            <h3 class="feature-title">Modern Dashboard</h3>
-            <p class="feature-text">Built on a cutting-edge Vue.js interface that provides instant feedback and
-                beautiful interactions.</p>
+            <h3 class="feature-title">The Director's Cut</h3>
+            <p class="feature-text">A high-performance dashboard that gives you complete
+                control over your proxies.</p>
         </div>
         <div class="feature-card">
             <div class="feature-icon-wrapper">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
             </div>
-            <h3 class="feature-title">Seamless Chat</h3>
-            <p class="feature-text">Instantly message via your proxy characters utilizing our highly optimized Fluxer
-                integration.</p>
+            <h3 class="feature-title">Flawless Delivery</h3>
+            <p class="feature-text">Your lines are delivered instantly. Powered by Fluxer's optimized webhook
+                integration for zero latency.</p>
         </div>
     </div>
 </div>

@@ -510,20 +510,14 @@ client.on(Events.MessageCreate, async (message) => {
     if (/^j!(help|h)(\s|$)/i.test(message.content)) {
         const category = message.content.replace(/^j!(help|h)\s*/i, '').trim().toLowerCase();
 
-        if (!category) {
-            const embed = new EmbedBuilder()
-                .setTitle(`🎭 Jester Bot Help`)
-                .setDescription("To view commands for a specific category, use `j!help <Category>`.\n\n**Categories:**\n• `Global` - Core proxy and management commands\n• `Editing` - Commands to modify your Jesters\n• `Autoproxy` - Commands for the autoproxy system\n• `Reactions` - Modify Jester messages with reactions")
-                .setColor('#9b59b6')
-                .setFooter({ text: 'Fluxer Jester Bot' });
-            return message.reply({ embeds: [embed] });
-        }
-
         const helpEmbed = new EmbedBuilder()
             .setColor('#9b59b6')
             .setFooter({ text: 'Fluxer Jester Bot' });
 
-        if (category === 'global' || category === 'core' || category === 'general') {
+        if (!category) {
+            helpEmbed.setTitle(`🎭 Jester Bot Help`)
+                .setDescription("To view commands for a specific category, use `j!help <Category>`.\n\n**Categories:**\n• `Global` - Core proxy and management commands\n• `Editing` - Commands to modify your Jesters\n• `Autoproxy` - Commands for the autoproxy system\n• `Reactions` - Modify Jester messages with reactions");
+        } else if (category === 'global' || category === 'core' || category === 'general') {
             helpEmbed.setTitle(`🎭 Jester Bot Help - Global`)
                 .setDescription("Manage your roleplay proxies easily. **Global Commands:**")
                 .addFields(
@@ -558,7 +552,41 @@ client.on(Events.MessageCreate, async (message) => {
             return sendEmbed(message, '❌ Unknown Category', "That category doesn't exist. Type `j!help` to see a list of categories.", '#f04747');
         }
 
-        return message.reply({ embeds: [helpEmbed] });
+        // Send the help message via the Jester Proxy Webhook
+        try {
+            const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+            if (!proxyChannel) return;
+
+            const webhooks = await proxyChannel.fetchWebhooks();
+            let webhook = webhooks.find(w => w.name === 'Jester Proxy');
+
+            if (!webhook) {
+                webhook = await message.channel.createWebhook({
+                    name: 'Jester Proxy',
+                });
+            }
+
+            const route = Routes.webhookExecute(webhook.id, webhook.token) + '?wait=true';
+            await client.rest.post(route, {
+                body: {
+                    username: "Jester's Mask",
+                    embeds: [helpEmbed.toJSON()]
+                },
+                auth: false
+            });
+
+            // Delete the user's trigger message
+            try {
+                await message.delete();
+            } catch (delErr) {
+                console.warn('Failed to delete original message:', delErr.message);
+            }
+
+            return;
+        } catch (err) {
+            console.error('Failed to send help via webhook:', err.message);
+            return message.reply({ embeds: [helpEmbed] });
+        }
     }
 
     if (message.content.toLowerCase().startsWith('j!')) {

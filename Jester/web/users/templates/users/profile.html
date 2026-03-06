@@ -1,65 +1,233 @@
 {% extends "jesters/base.html" %}
-{% block title %}Profile – Jester Bot{% endblock %}
+{% block title %}Profile – Jester's Mask{% endblock %}
 
-{% block content %}
-<!-- Profile card -->
-<div class="card" style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;">
-    {% if avatar_url %}
-    <img src="{{ avatar_url }}" alt="avatar"
-        style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);">
-    {% else %}
-    <div style="width:80px;height:80px;border-radius:50%;background:var(--primary);
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:2rem;font-weight:700;border:3px solid var(--primary);">
-        {{ fluxer_tag|slice:":1"|upper }}
-    </div>
-    {% endif %}
-    <div>
-        <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:0.25rem;">
-            {{ display_name|default:fluxer_tag }}
-        </h2>
-        {% if display_name %}
-        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.4rem;">{{ fluxer_tag }}</p>
-        {% endif %}
-        <span class="tag">ID: {{ fluxer_id }}</span>
-    </div>
-</div>
+{% block styles %}
+<style>
+    .profile-container {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3rem 1rem;
+        min-height: calc(100vh - var(--nav-height));
+        overflow: hidden;
+    }
 
-<!-- Jesters section -->
-<div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-        <h3 style="font-size:1.1rem;font-weight:600;">Your Jesters</h3>
-        <span style="color:var(--text-muted);font-size:0.85rem;">{{ jesters|length }} total</span>
-    </div>
-    <div class="divider"></div>
+    /* Theatrical Background & Spotlight */
+    .profile-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-color: transparent;
+        background-image:
+            linear-gradient(135deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(225deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(45deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
+            linear-gradient(315deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%);
+        background-position: 40px 0, 40px 0, 0 0, 0 0;
+        background-size: 80px 80px;
+        background-repeat: repeat;
+        z-index: -2;
+    }
 
-    {% if jesters %}
-    <div class="jester-grid">
-        {% for jester in jesters %}
-        <div class="jester-card">
-            {% if jester.discord_avatar_url or jester.avatar %}
-            <img src="{{ jester.discord_avatar_url|default:jester.avatar.url }}" alt="{{ jester.name }}"
-                class="jester-avatar">
+    .profile-container::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 30%, rgba(155, 89, 182, 0.15) 0%, rgba(26, 26, 46, 0.8) 70%, var(--bg) 100%);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .theatrical-card {
+        background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        position: relative;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        max-width: 850px;
+        width: 100%;
+        margin-bottom: 2rem;
+        animation: fadeUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .theatrical-card::before,
+    .theatrical-card::after {
+        content: '♦';
+        position: absolute;
+        font-size: 1.5rem;
+        color: rgba(155, 89, 182, 0.15);
+    }
+
+    .theatrical-card::before {
+        top: 15px;
+        left: 20px;
+    }
+
+    .theatrical-card::after {
+        bottom: 15px;
+        right: 20px;
+        transform: rotate(180deg);
+    }
+
+    .profile-name {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        background: linear-gradient(135deg, #fff, #d5b8ff, #9b59b6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 5px 15px rgba(155, 89, 182, 0.2);
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(155, 89, 182, 0.6);
+        box-shadow: 0 0 25px rgba(155, 89, 182, 0.3);
+        background: var(--surface-2);
+    }
+
+    .profile-avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: radial-gradient(circle at top left, rgba(195, 155, 211, 0.3), transparent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        border: 3px solid rgba(155, 89, 182, 0.6);
+        box-shadow: 0 0 25px rgba(155, 89, 182, 0.3);
+        color: #fff;
+    }
+
+    @keyframes fadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Enhanced Jester Grid for Profile */
+    .jester-card {
+        background: rgba(30, 20, 40, 0.6);
+        border: 1px solid rgba(155, 89, 182, 0.2);
+        backdrop-filter: blur(8px);
+    }
+
+    .jester-card:hover {
+        border-color: rgba(155, 89, 182, 0.6);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        background: rgba(42, 31, 61, 0.8);
+    }
+
+    .divider {
+        background: linear-gradient(90deg, transparent, rgba(155, 89, 182, 0.3), transparent);
+    }
+</style>
+{% endblock %}
+
+{% block full_page %}
+<div class="profile-container">
+    <div style="width: 100%; max-width: 850px; z-index: 1;">
+        <!-- Profile card -->
+        <div class="theatrical-card" style="display:flex;align-items:center;gap:2rem;">
+            {% if avatar_url %}
+            <img src="{{ avatar_url }}" alt="avatar" class="profile-avatar">
             {% else %}
-            <div class="jester-placeholder">{{ jester.name|slice:":1"|upper }}</div>
+            <div class="profile-avatar-placeholder">
+                {{ fluxer_tag|slice:":1"|upper }}
+            </div>
             {% endif %}
-            <div style="overflow:hidden;">
-                <p style="font-weight:600;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                    {{ jester.name }}
-                </p>
-                <p style="color:var(--text-muted);font-size:0.8rem;">
-                    Prefix: <code style="color:var(--primary-h);">{{ jester.prefix }}</code>
-                </p>
+            <div>
+                <h2 class="profile-name">
+                    {{ display_name|default:fluxer_tag }}
+                </h2>
+                {% if display_name %}
+                <p style="color:#d1d1e0;font-size:1.05rem;margin-bottom:0.8rem;font-weight:300;">{{ fluxer_tag }}</p>
+                {% endif %}
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="tag"
+                        style="background: rgba(155, 89, 182, 0.15); border: 1px solid rgba(155, 89, 182, 0.3); color: #e0c3fc; padding: 0.3rem 0.8rem;">ID:
+                        {{ fluxer_id }}</span>
+                    {% if is_admin %}
+                    <span class="tag"
+                        style="background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color: #ff7675; padding: 0.3rem 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                        Admin</span>
+                    {% elif is_moderator %}
+                    <span class="tag"
+                        style="background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); color: #55efc4; padding: 0.3rem 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+                        Moderator</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        {% endfor %}
+
+        <!-- Jesters section -->
+        <div class="theatrical-card" style="animation-delay: 0.1s;">
+            <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom: 0.5rem;">
+                <h3 style="font-size:1.3rem;font-weight:700; color: #fff;">Your Cast of Characters</h3>
+                <div style="display:flex;align-items:center;gap:1.5rem;">
+                    <span style="color:#b3b3cc;font-size:0.9rem; font-weight: 600;">{{ jesters|length }} total</span>
+                    <a href="{% url 'dashboard' %}" class="btn-hero"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem; background: linear-gradient(135deg, var(--primary), #732d91); color: #fff; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 5px 10px rgba(155, 89, 182, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px;">
+                        Enter Dashboard
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-left: 0.3rem;">
+                            <path d="M5 12h14M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="divider" style="margin-bottom: 2rem;"></div>
+
+            {% if jesters %}
+            <div class="jester-grid">
+                {% for jester in jesters|slice:":3" %}
+                <div class="jester-card">
+                    {% if jester.discord_avatar_url or jester.avatar %}
+                    <img src="{{ jester.discord_avatar_url|default:jester.avatar.url }}" alt="{{ jester.name }}"
+                        class="jester-avatar" style="border: 2px solid rgba(155, 89, 182, 0.4);">
+                    {% else %}
+                    <div class="jester-placeholder"
+                        style="border: 2px solid rgba(155, 89, 182, 0.4); background: radial-gradient(circle at top left, rgba(195, 155, 211, 0.2), transparent);">
+                        {{ jester.name|slice:":1"|upper }}</div>
+                    {% endif %}
+                    <div style="overflow:hidden;">
+                        <p
+                            style="font-weight:600;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; color: #fff;">
+                            {{ jester.name }}
+                        </p>
+                        <p style="color:#a0a0b0;font-size:0.85rem; margin-top: 0.2rem;">
+                            Prefix: <code
+                                style="color:#e0c3fc; background: rgba(0,0,0,0.3); padding: 0.1rem 0.3rem; border-radius: 4px;">{{ jester.prefix }}</code>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color:#b3b3cc;text-align:center;padding:3rem 0; font-size: 1.1rem;">
+                No Characters created yet. Use <code
+                    style="background:rgba(155, 89, 182, 0.2);padding:0.2rem 0.6rem;border-radius:6px; color: #fff;">j!create</code>
+                in Fluxer to
+                take the stage.
+            </p>
+            {% endif %}
+        </div>
     </div>
-    {% else %}
-    <p style="color:var(--text-muted);text-align:center;padding:2rem 0;">
-        No Jesters yet! Use <code
-            style="background:var(--surface-2);padding:0.1rem 0.4rem;border-radius:4px;">j!create</code> in Fluxer to
-        make one.
-    </p>
-    {% endif %}
 </div>
 {% endblock %}
