@@ -331,7 +331,7 @@
                                 Choose Image
                             </div>
                             <input type="file" @change="handleFileUpload" name="avatar" id="avatar" class="form-input"
-                                accept="image/*" required>
+                                accept="image/*">
                         </div>
                         <span class="form-hint" style="margin-top: 0.5rem; display: block;">High-res square images work
                             best.</span>
@@ -375,7 +375,7 @@
                 return this.previewUrl ? { borderColor: 'var(--primary)' } : {};
             },
             isValid() {
-                return this.name.trim() !== '' && this.prefix.trim() !== '' && this.previewUrl !== null;
+                return this.name.trim() !== '' && this.prefix.trim() !== '';
             }
         },
         methods: {

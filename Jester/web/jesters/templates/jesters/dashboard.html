@@ -18,7 +18,8 @@
         padding: 0 !important;
         max-width: 1400px !important;
         margin: 40px auto 20px auto !important;
-        height: calc(100vh - 120px);
+        height: calc(100vh - 120px) !important;
+        min-height: 0 !important; /* Forces strict fixed height, stopping flex expansion downward */
         display: flex;
         flex-direction: column;
         background: rgba(30, 22, 40, 0.85);
@@ -48,7 +49,7 @@
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
-        height: 100%;
+        align-self: stretch; /* Explicitly tell it to pull to the bottom instead of height:100% which collapses on empty content */
         user-select: none;
         border-right: 1px solid rgba(155, 89, 182, 0.2);
     }
@@ -84,6 +85,61 @@
 
     .tb-action-btn:hover {
         opacity: 1;
+    }
+
+    .tb-dropdown {
+        position: absolute;
+        top: 28px;
+        right: 0;
+        background: var(--surface);
+        border: 1px solid rgba(155, 89, 182, 0.4);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        min-width: 150px;
+        z-index: 1000;
+        padding: 6px 0;
+    }
+
+    .tb-dropdown-item {
+        padding: 10px 16px;
+        color: #e0e0e0;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .tb-dropdown-item:hover {
+        background: rgba(155, 89, 182, 0.2);
+        color: #fff;
+    }
+
+    .tb-dropdown-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 4px 0;
+    }
+
+    .text-danger {
+        color: #e74c3c !important;
+    }
+
+    .quick-delete-btn {
+        margin-left: auto;
+        color: #e74c3c;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(231, 76, 60, 0.1);
+        transition: background 0.2s;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quick-delete-btn:hover {
+        background: rgba(231, 76, 60, 0.3);
+        color: #fff;
     }
 
     .tb-sidebar-section {
@@ -191,20 +247,30 @@
     .tb-main {
         flex: 1;
         background: transparent;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
         position: relative;
-        overflow-y: auto;
+        display: block;
         box-shadow: inset 40px 0 40px -40px rgba(0, 0, 0, 0.5);
+    }
+
+    .tb-main-scroll {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow-y: auto;
     }
 
     /* Empty State */
     .tb-empty-state {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         text-align: center;
         opacity: 0.5;
         transition: opacity 0.2s;
+        width: 100%;
     }
 
     .tb-empty-state:hover {
@@ -224,12 +290,12 @@
     /* Detail View */
     .tb-detail-view {
         width: 100%;
-        height: 100%;
+        max-width: 800px;
+        margin: 0 auto; /* Center horizontally in the block layout */
         padding: 40px;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        max-width: 800px;
     }
 
     .tb-detail-header {
@@ -409,8 +475,20 @@
                 <span>Your Jesters</span>
                 <div class="tb-sidebar-actions">
                     <a class="tb-action-btn" :href="'/create/?user_id=' + userId" title="Create New">+</a>
-                    <span class="tb-action-btn">-</span>
-                    <span class="tb-action-btn">⋮</span>
+                    <span class="tb-action-btn" @click="toggleDeleteMode" :class="{'text-danger': isDeleteMode}" title="Quick Delete Mode">-</span>
+                    
+                    <div style="position: relative; display: inline-flex;">
+                        <span class="tb-action-btn" @click="toggleOptionsDropdown" title="Options">⋮</span>
+                        
+                        <div v-if="showOptionsDropdown" @click="showOptionsDropdown = false" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:999;"></div>
+                        
+                        <div v-if="showOptionsDropdown" class="tb-dropdown">
+                            <div class="tb-dropdown-item" @click="sortJesters('az')">Sort A-Z</div>
+                            <div class="tb-dropdown-item" @click="sortJesters('newest')">Sort Newest</div>
+                            <div class="tb-dropdown-divider"></div>
+                            <div class="tb-dropdown-item" @click="exportJesters">Export to JSON</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -432,6 +510,8 @@
                     <div v-else class="tb-avatar-small-placeholder">?</div>
 
                     <span class="tb-name-small">[[ jester.name ]]</span>
+                    
+                    <span v-if="isDeleteMode" @click="quickDeleteJester(jester, $event)" class="quick-delete-btn" title="Delete Jester">✕</span>
                 </div>
             </div>
         </div>
@@ -466,9 +546,9 @@
 
     <!-- Main Content -->
     <div class="tb-main">
-
-        <!-- Empty State -->
-        <div v-if="currentView === 'none'" class="tb-empty-state">
+        <div class="tb-main-scroll">
+            <!-- Empty State -->
+            <div v-if="currentView === 'none'" class="tb-empty-state">
             <div class="tb-box-icon"></div>
             <h3 style="color: #dcddde; font-weight: 500; margin-top:10px;">Select a Jester or Group</h3>
         </div>
@@ -673,6 +753,7 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 
     <!-- Group Creation Modal -->
@@ -718,6 +799,9 @@
                 selectedGroup: null,
                 loadingGroups: true,
 
+                isDeleteMode: false,
+                showOptionsDropdown: false,
+
                 activeTab: 'info',
                 isSaving: false,
 
@@ -752,6 +836,52 @@
             this.fetchGroups();
         },
         methods: {
+            toggleDeleteMode() {
+                this.isDeleteMode = !this.isDeleteMode;
+            },
+            toggleOptionsDropdown() {
+                this.showOptionsDropdown = !this.showOptionsDropdown;
+            },
+            sortJesters(type) {
+                if (type === 'az') {
+                    this.jesters.sort((a, b) => a.name.localeCompare(b.name));
+                } else if (type === 'newest') {
+                    this.jesters.sort((a, b) => b.id - a.id);
+                }
+                this.showOptionsDropdown = false;
+            },
+            exportJesters() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.jesters, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "jesters_export.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                this.showOptionsDropdown = false;
+            },
+            async quickDeleteJester(jester, event) {
+                event.stopPropagation();
+                if(confirm(`Are you absolutely sure you want to delete ${jester.name}? This is irreversible.`)) {
+                    try {
+                        const response = await fetch(`/api/jesters/${jester.id}/`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRFToken': this.getCsrfToken() }
+                        });
+                        if (response.ok) {
+                            this.jesters = this.jesters.filter(j => j.id !== jester.id);
+                            if (this.selectedJester && this.selectedJester.id === jester.id) {
+                                this.selectedJester = null;
+                                this.currentView = 'none';
+                            }
+                        } else {
+                            alert('Failed to delete jester.');
+                        }
+                    } catch(e) {
+                        alert('Error communicating with server.');
+                    }
+                }
+            },
             sanitizePrefix() {
                 this.editForm.prefix = this.editForm.prefix.replace(/\s+/g, '');
             },

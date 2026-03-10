@@ -20,6 +20,8 @@ const API_URL = 'http://127.0.0.1:8000/api/jesters';
 const tupperCache = new Map();
 // Map<LocalPath, PublicUrl>
 const uploadedAvatarUrls = new Map();
+// Map<WebhookMsgId, WebhookToken>
+const webhookMessageCache = new Map();
 
 client.on(Events.Ready, () => {
     // client.user might be undefined in some versions of Fluxer if not fully ready, but typically it is.
@@ -40,8 +42,8 @@ const sendEmbed = (message, title, description, color = '#9b59b6') => {
     return message.reply({ embeds: [embed] });
 };
 
-client.on(Events.MessageCreate, async (message) => {
-    if (message.author.bot) return;
+const handleMessage = async (message) => {
+    if (!message || !message.author || message.author.bot) return;
 
     if (message.content === 'j!ping') {
         return sendEmbed(message, '🏓 Pong!', 'The bot is active and listening.');
@@ -808,7 +810,6 @@ client.on(Events.MessageCreate, async (message) => {
             }
 
             // Send as Jester using direct REST call
-            console.log('[DEBUG v3.6] Final Webhook Body:', JSON.stringify(webhookBody, null, 2));
             try {
                 // Force wait=true to get the message object back
                 const route = Routes.webhookExecute(webhook.id, webhook.token) + '?wait=true';
@@ -816,7 +817,13 @@ client.on(Events.MessageCreate, async (message) => {
                     body: webhookBody,
                     auth: false
                 });
-                console.log('[DEBUG v3.5] Webhook executed successfully. Response:', JSON.stringify(response, null, 2));
+
+                // Save webhook token so we can edit this message later
+                if (response && response.id) {
+                    webhookMessageCache.set(response.id, webhook.token);
+                    // Keep cache from growing forever (optional, clean up after 2h)
+                    setTimeout(() => webhookMessageCache.delete(response.id), 2 * 60 * 60 * 1000);
+                }
 
                 // Only delete the original message if the webhook succeeds
                 try {
@@ -862,6 +869,24 @@ client.on(Events.MessageCreate, async (message) => {
             }
         }
     }
+};
+
+client.on(Events.MessageCreate, handleMessage);
+
+client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
+    if (newMessage.partial) {
+        try {
+            await newMessage.fetch();
+        } catch (e) {
+            console.error('Failed to fetch partial message on update:', e.message);
+            return;
+        }
+    }
+    
+    // Ignore if the content hasn't changed (e.g., an embed was added by Discord)
+    if (oldMessage && oldMessage.content === newMessage.content) return;
+    
+    await handleMessage(newMessage);
 });
 
 // Reaction listener for deleting or editing Jester messages
@@ -925,8 +950,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     else if (emojiName === '✏️') {
         try {
             const dmChannel = await user.createDM();
-            await dmChannel.send(`\`\`\`\n${message.content}\n\`\`\`\n\nType the new message and send it to me to edit the original message`);
-            await dmChannel.send('Message editing doesn\'t work as of now. Please be patient, I\'ll resolve this issue as soon as I can.');
+            await dmChannel.send(`\`\`\`\n${message.content}\n\`\`\`\n\nType the new message and send it to me to edit the original message (timeout in 30s).`);
 
             // Wait for user's response in DMs (30s) manually since awaitMessages doesn't exist in @fluxerjs
             const newContent = await new Promise((resolve, reject) => {
@@ -964,23 +988,51 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
             const webhooks = await proxyChannel.fetchWebhooks();
             const webhook = webhooks.find(w => w.id === message.webhookId);
 
-            if (webhook && webhook.token) {
-                // @fluxerjs REST endpoint to edit webhook messages
-                let route = Routes.webhookExecute(webhook.id, webhook.token) + `/messages/${message.id}?wait=true`;
-                if (threadId) {
-                    route += `&thread_id=${threadId}`;
+            console.log('\n--- [DEBUG Webhook Edit] ---');
+            console.log(`Original Message ID: ${message.id}`);
+            console.log(`Associated Webhook ID: ${message.webhookId}`);
+
+            // Attempt to retrieve token from our cache first
+            const cachedToken = webhookMessageCache.get(message.id);
+            const tokenToUse = cachedToken || (webhook ? webhook.token : null);
+
+            console.log(`Found Webhook in Channel:`, !!webhook);
+            console.log(`Found Webhook Token in Cache:`, !!cachedToken);
+            console.log(`Found Webhook Token on Object:`, !!(webhook && webhook.token));
+            console.log(`Final Token Authorizing Edit:`, !!tokenToUse);
+
+            if (webhook && tokenToUse) {
+                try {
+                    // Let @fluxerjs build the correct local route automatically.
+                    // This perfectly avoids the 404 URL mismatch.
+                    let route = Routes.webhookExecute(message.webhookId, tokenToUse) + `/messages/${message.id}`;
+                    
+                    // Construct the query parameters if it's in a thread
+                    const query = threadId ? new URLSearchParams({ thread_id: threadId }) : undefined;
+
+                    console.log(`Target Internal Route: ${route}`);
+                    console.log(`Thread ID Query Param: ${threadId || 'None'}`);
+                    console.log(`Sending new content payload:`, { content: newContent });
+
+                    await client.rest.patch(route, {
+                        body: { content: newContent },
+                        query: query,
+                        auth: false // Webhooks don't use bot token auth
+                    });
+                    
+                    console.log('✅ Edit HTTP PATCH resolved successfully.');
+                    console.log('----------------------------\n');
+
+                    await dmChannel.send('✅ Message edited successfully!');
+                } catch (err) {
+                    console.error('❌ [DEBUG Webhook Edit] API Error encountered:', err);
+                    console.log('----------------------------\n');
+                    await dmChannel.send(`❌ Cannot edit this message due to an API error: ${err.message}`);
                 }
-
-                console.log(`[DEBUG Webhook Edit] Route: ${route}`);
-                console.log(`[DEBUG Webhook Edit] Webhook ID: ${webhook.id}, Message ID: ${message.id}`);
-
-                await client.rest.patch(route, {
-                    body: { content: newContent },
-                    auth: false
-                });
-                await dmChannel.send('✅ Message edited successfully!');
             } else {
-                await dmChannel.send('❌ Cannot edit this message. (No webhook token available)');
+                console.log('❌ Edit blocked: No webhook token available.');
+                console.log('----------------------------\n');
+                await dmChannel.send('❌ Cannot edit this message. (No webhook token available, message might be too old)');
             }
         } catch (err) {
             if (err instanceof Map || err.size === 0 || (err.message && err.message.includes('time'))) {
