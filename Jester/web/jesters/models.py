@@ -4,7 +4,7 @@ class JesterGroup(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='group_images/', null=True, blank=True)
-    discord_image_url = models.CharField(max_length=255, blank=True, null=True)
+    fluxer_image_url = models.CharField(max_length=255, blank=True, null=True)
     user_id = models.CharField(max_length=50, help_text="Fluxer User ID")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -12,8 +12,8 @@ class JesterGroup(models.Model):
 
     @property
     def image_url(self):
-        if self.discord_image_url:
-            return self.discord_image_url
+        if self.fluxer_image_url:
+            return self.fluxer_image_url
         if self.image:
             return self.image.url
         return ""
@@ -28,8 +28,8 @@ class Jester(models.Model):
     prefix = models.CharField(max_length=50)
     # File upload for avatar
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    # Store the Discord/Fluxer CDN URL here after first upload
-    discord_avatar_url = models.CharField(max_length=255, blank=True, null=True)
+    # Store the Fluxer CDN URL here after first upload
+    fluxer_avatar_url = models.CharField(max_length=255, blank=True, null=True)
     user_id = models.CharField(max_length=50, help_text="Fluxer User ID")
     
     # Many-to-many relationship with groups
@@ -41,8 +41,8 @@ class Jester(models.Model):
 
     @property
     def avatar_url(self):
-        if self.discord_avatar_url:
-            return self.discord_avatar_url
+        if self.fluxer_avatar_url:
+            return self.fluxer_avatar_url
         if self.avatar:
             return self.avatar.url
         return ""

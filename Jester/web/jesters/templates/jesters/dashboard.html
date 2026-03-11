@@ -1066,7 +1066,7 @@
                 this.groupImagePreview = null;
             },
             getAvatar(jester) {
-                if (jester.discord_avatar_url) return jester.discord_avatar_url;
+                if (jester.fluxer_avatar_url) return jester.fluxer_avatar_url;
                 if (jester.local_avatar_url) return jester.local_avatar_url;
                 if (jester.avatar_url) return jester.avatar_url; // Fallback
                 return null;
@@ -1138,7 +1138,7 @@
                     const index = this.jesters.findIndex(j => j.id === updated.id);
                     if (index !== -1) {
                         this.jesters[index].local_avatar_url = updated.local_avatar_url;
-                        this.jesters[index].discord_avatar_url = updated.discord_avatar_url;
+                        this.jesters[index].fluxer_avatar_url = updated.fluxer_avatar_url;
                         this.jesters[index].avatar_url = updated.avatar_url;
                         this.selectedJester = this.jesters[index];
                     }
@@ -1173,7 +1173,7 @@
             },
             // --- Group Methods ---
             getGroupImage(group) {
-                if (group.discord_image_url) return group.discord_image_url;
+                if (group.fluxer_image_url) return group.fluxer_image_url;
                 if (group.image_url) return group.image_url;
                 return null;
             },
@@ -1265,7 +1265,7 @@
                     const index = this.groups.findIndex(g => g.id === updated.id);
                     if (index !== -1) {
                         this.groups[index].image_url = updated.image_url;
-                        this.groups[index].discord_image_url = updated.discord_image_url;
+                        this.groups[index].fluxer_image_url = updated.fluxer_image_url;
                         this.selectedGroup = this.groups[index];
                     }
                     this.groupImageFile = null;

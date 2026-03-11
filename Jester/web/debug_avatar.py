@@ -12,8 +12,8 @@ try:
     j = Jester.objects.first()
     if j:
         print(f"Checking Jester: {j.name}")
-        if j.discord_avatar_url:
-            print(f"Discord Avatar: {j.discord_avatar_url}")
+        if j.fluxer_avatar_url:
+            print(f"Fluxer Avatar: {j.fluxer_avatar_url}")
         
         if j.avatar:
             print(f"Avatar Field: {j.avatar}")

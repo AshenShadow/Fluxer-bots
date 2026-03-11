@@ -2,7 +2,7 @@
 import requests
 
 url = "http://127.0.0.1:8000/api/jesters/1"
-payload = {"discord_avatar_url": "https://example.com/avatar.png"}
+payload = {"fluxer_avatar_url": "https://example.com/avatar.png"}
 
 print(f"Testing PATCH to {url}")
 try:

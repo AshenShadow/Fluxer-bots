@@ -88,20 +88,27 @@ const handleMessage = async (message) => {
             return sendEmbed(message, '❌ Error', "Please provide a name and a prefix trigger.\nUsage: `j!c <Name> <Prefix:msg>`", '#f04747');
         }
 
-        const triggerMatch = trigger.match(/^(.+?)([^a-zA-Z0-9\s])(msg)$/i);
+        // Updated Regex: Matches: (Prefix)(msg)(Suffix)
+        // Acceptable triggers: [msg], {msg}, Prefix:msg, etc.
+        // We require the word "msg" as the placeholder.
+        const triggerMatch = trigger.match(/^(.*?)(msg)(.*?)$/i);
 
         if (!triggerMatch) {
-            if (!trigger.toLowerCase().endsWith('msg')) {
-                return sendEmbed(message, '❌ Prefix Error', "The trigger must end with 'msg' (e.g. `Prefix:msg`).", '#f04747');
+            if (!trigger.toLowerCase().includes('msg')) {
+                return sendEmbed(message, '❌ Prefix Error', "The trigger must contain the word 'msg' (e.g. `[msg]`, `Prefix:msg`).", '#f04747');
             }
-            return sendEmbed(message, '❌ Prefix Error', "Invalid format. It must contain a separator (like `:`, `-`) followed by `msg`.\nExample: `MJ:msg`", '#f04747');
+            return sendEmbed(message, '❌ Prefix Error', "Invalid format.", '#f04747');
         }
 
-        const prefix = triggerMatch[1]; // The part before separator
+        const prefix = triggerMatch[1] || ''; // The part before 'msg'
+        const suffix = triggerMatch[3] || ''; // The part after 'msg'
 
         const form = new FormData();
         form.append('name', name);
-        form.append('prefix', prefix);
+
+        // Encode suffix into prefix field
+        const combinedPrefix = suffix ? `${prefix}||${suffix}` : prefix;
+        form.append('prefix', combinedPrefix);
         form.append('user_id', message.author.id);
 
         const attachment = message.attachments.first();
@@ -241,7 +248,7 @@ const handleMessage = async (message) => {
         } else {
             // j!info or j!i
             if (!query) {
-                showList = true;
+                return sendEmbed(message, 'ℹ️ Jester Info', "Usage: `j!info <Name>`\nExample: `j!i \"My Jester\"`");
             }
         }
 
@@ -277,13 +284,18 @@ const handleMessage = async (message) => {
 
         if (exactMatch) {
             const embed = new EmbedBuilder()
-                .setTitle(exactMatch.name)
-                .setDescription(`**Prefix:** \`${exactMatch.prefix}\`\n**ID:** \`${exactMatch.id}\``)
+                .setTitle(exactMatch.display_name ? `${exactMatch.display_name} (${exactMatch.name})` : exactMatch.name)
+                .setDescription(exactMatch.description || '*No description provided.*')
+                .addFields(
+                    { name: 'Prefix', value: `\`${exactMatch.prefix}\``, inline: true },
+                    { name: 'Messages Proxied', value: `${exactMatch.message_count || 0}`, inline: true },
+                    { name: 'ID', value: `\`${exactMatch.id}\``, inline: true }
+                )
                 .setColor('#9b59b6')
                 .setFooter({ text: 'Fluxer Jester Bot' });
 
-            if (exactMatch.discord_avatar_url) {
-                embed.setThumbnail(exactMatch.discord_avatar_url);
+            if (exactMatch.fluxer_avatar_url) {
+                embed.setThumbnail(exactMatch.fluxer_avatar_url);
             } else if (exactMatch.avatar_url) {
                 const avatarUrl = exactMatch.avatar_url.startsWith('http')
                     ? exactMatch.avatar_url
@@ -349,16 +361,22 @@ const handleMessage = async (message) => {
         const argsStr = message.content.replace(/^j!(prefix|pre)\s*/i, '').trim();
         const args = argsStr.match(/(?:[^\s"]+|"[^"]*")+/g);
         if (!args || args.length < 2) {
-            return sendEmbed(message, '📝 Change Prefix', "Usage: `j!prefix <Name> <NewPrefix:msg>`\nExample: `j!prefix \"My Jester\" new:msg`");
+            return sendEmbed(message, '📝 Change Prefix', "Usage: `j!prefix <Name> <NewPrefixmsg>`\nExample: `j!prefix \"My Jester\" new:msg`");
         }
         const name = args[0].replace(/^"|"$/g, '');
         let newTrigger = args[1].replace(/^"|"$/g, '');
 
-        const triggerMatch = newTrigger.match(/^(.+?)([^a-zA-Z0-9\s])(msg)$/i);
+        const triggerMatch = newTrigger.match(/^(.*?)(msg)(.*?)$/i);
         if (!triggerMatch) {
-            return sendEmbed(message, '❌ Prefix Error', "Invalid format. It must contain a separator followed by `msg`.\nExample: `new:msg`", '#f04747');
+            if (!newTrigger.toLowerCase().includes('msg')) {
+                return sendEmbed(message, '❌ Prefix Error', "The trigger must contain the word 'msg' (e.g. `[msg]`, `Prefix:msg`).", '#f04747');
+            }
+            return sendEmbed(message, '❌ Prefix Error', "Invalid format.", '#f04747');
         }
-        const newPrefix = triggerMatch[1];
+
+        const prefix = triggerMatch[1] || '';
+        const suffix = triggerMatch[3] || '';
+        const combinedPrefix = suffix ? `${prefix}||${suffix}` : prefix;
 
         let jesters = tupperCache.get(message.author.id);
         if (!jesters) {
@@ -380,9 +398,9 @@ const handleMessage = async (message) => {
         }
 
         try {
-            await axios.patch(`${API_URL}/${exactMatch.id}`, { prefix: newPrefix });
+            await axios.patch(`${API_URL}/${exactMatch.id}`, { prefix: combinedPrefix });
             tupperCache.delete(message.author.id);
-            return sendEmbed(message, '✅ Prefix Changed', `Successfully changed prefix for **${exactMatch.name}** to \`${newPrefix}:\` (trigger: \`${newTrigger}\`).`);
+            return sendEmbed(message, '✅ Prefix Changed', `Successfully changed prefix for **${exactMatch.name}** to \`${newTrigger}\`.`);
         } catch (error) {
             return sendEmbed(message, '❌ Error', "Prefix may already be in use or an error occurred.", '#f04747');
         }
@@ -508,6 +526,39 @@ const handleMessage = async (message) => {
         }
     }
 
+    // Command: j!show (Show original author of a proxy)
+    if (/^j!(show)(\s|$)/i.test(message.content)) {
+        const ref = message.messageReference || message.reference;
+        if (!ref) {
+            return sendEmbed(message, '🔍 Show Author', "You need to reply to a Jester's message with `j!show` to see who sent it.", '#f04747');
+        }
+        try {
+            const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+            const msgId = ref.messageId || ref.message_id;
+            const refMsg = await proxyChannel.messages.fetch(msgId);
+            
+            if (!refMsg.author || !refMsg.author.bot) {
+                return sendEmbed(message, '❌ Not a Proxy', "The message you replied to does not seem to be sent by a Jester.", '#f04747');
+            }
+
+            // Look up Jester by name
+            const allRes = await axios.get(`${API_URL}/all`);
+            const allJesters = allRes.data;
+            const matchedJesterUser = allJesters.find(j => j.name === refMsg.author.username);
+            
+            if (matchedJesterUser) {
+                return sendEmbed(message, '🔍 Proxy Author Details', `**Jester:** ${matchedJesterUser.name}\n**Owner:** <@${matchedJesterUser.user_id}>\n\n*(Note: Currently looking up by exact Jester name because direct webhook mapping is unsupported by the API)*`);
+            } else {
+                return sendEmbed(message, '❌ Unknown Sender', `Could not reliably determine the sender of the webhook message **${refMsg.author.username}**.`, '#f04747');
+            }
+
+        } catch (e) {
+            console.error("Show command failed:", e);
+            return sendEmbed(message, '❌ Error', "Failed to fetch the original message author.", '#f04747');
+        }
+    }
+
+
     // Command: j!help or j!h
     if (/^j!(help|h)(\s|$)/i.test(message.content)) {
         const category = message.content.replace(/^j!(help|h)\s*/i, '').trim().toLowerCase();
@@ -548,47 +599,14 @@ const handleMessage = async (message) => {
                 .setDescription("**Reactions:**\nYou can manage the messages sent by your Jesters by reacting to them directly.")
                 .addFields(
                     { name: '❌ Delete Message', value: 'React with ❌ to a Jester\'s message to immediately delete it.' },
-                    { name: '~~✏️ Edit Message~~', value: '~~React with ✏️ to a Jester\'s message to edit it. The bot will DM you the original message so you can fix typos and send the corrections directly back to the bot.~~ (I\'m working on it)' }
+                    { name: '~~✏️ Edit Message~~', value: '~~React with ✏️ to a Jester\'s message to edit it. The bot will DM you the original message so you can fix typos and send the corrections directly back to the bot.~~ (Due to Fluxer missing the API endpoint for this, this will not be implemented until the API endpoint is added.)' }
                 );
         } else {
             return sendEmbed(message, '❌ Unknown Category', "That category doesn't exist. Type `j!help` to see a list of categories.", '#f04747');
         }
 
-        // Send the help message via the Jester Proxy Webhook
-        try {
-            const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
-            if (!proxyChannel) return;
-
-            const webhooks = await proxyChannel.fetchWebhooks();
-            let webhook = webhooks.find(w => w.name === 'Jester Proxy');
-
-            if (!webhook) {
-                webhook = await message.channel.createWebhook({
-                    name: 'Jester Proxy',
-                });
-            }
-
-            const route = Routes.webhookExecute(webhook.id, webhook.token) + '?wait=true';
-            await client.rest.post(route, {
-                body: {
-                    username: "Jester's Mask",
-                    embeds: [helpEmbed.toJSON()]
-                },
-                auth: false
-            });
-
-            // Delete the user's trigger message
-            try {
-                await message.delete();
-            } catch (delErr) {
-                console.warn('Failed to delete original message:', delErr.message);
-            }
-
-            return;
-        } catch (err) {
-            console.error('Failed to send help via webhook:', err.message);
-            return message.reply({ embeds: [helpEmbed] });
-        }
+        // Just reply normally
+        return message.reply({ embeds: [helpEmbed] });
     }
 
     if (message.content.toLowerCase().startsWith('j!')) {
@@ -616,7 +634,56 @@ const handleMessage = async (message) => {
     if (!jesters || jesters.length === 0) return;
 
     const content = message.content;
-    let matchedJester = jesters.find(j => content.startsWith(j.prefix + ":") || content.startsWith(j.prefix + " :"));
+    let matchedJester = null;
+    let p = '';
+    let s = '';
+
+    // Find highest matching prefix
+    for (const j of jesters) {
+        let trigger = j.prefix || '';
+        let cp = '';
+        let cs = '';
+        let matched = false;
+
+        if (trigger.includes('||')) {
+            const parts = trigger.split('||');
+            cp = parts[0];
+            cs = parts[1] || '';
+            
+            if (cp && cs && content.startsWith(cp) && content.endsWith(cs)) {
+                matched = true;
+            } else if (cp && !cs && content.startsWith(cp)) {
+                matched = true;
+            } else if (!cp && cs && content.endsWith(cs)) {
+                matched = true;
+            }
+        } else {
+            // Support legacy (e.g. prefix="TPE", msg looks like "TPE: Hello" or "TPE Hello")
+            // Or new suffixless exactly as defined ("TPE:" -> "TPE:Hello")
+            if (content.startsWith(trigger + ":")) {
+                matched = true;
+                cp = trigger + ":";
+            } else if (content.startsWith(trigger + " :")) {
+                matched = true;
+                cp = trigger + " :";
+            } else if (content.startsWith(trigger)) {
+                const nextChar = content.charAt(trigger.length);
+                if (!/[a-zA-Z0-9]/.test(trigger.slice(-1)) || !nextChar || !/[a-zA-Z0-9]/.test(nextChar)) {
+                    matched = true;
+                    cp = trigger;
+                }
+            }
+        }
+
+        if (matched) {
+            // Pick the most specific match (longest prefix length)
+            if (!matchedJester || (cp.length > p.length)) {
+                matchedJester = j;
+                p = cp;
+                s = cs;
+            }
+        }
+    }
 
     // Autoproxy Check (if no prefix match)
     if (!matchedJester) {
@@ -639,11 +706,12 @@ const handleMessage = async (message) => {
     if (matchedJester) {
         let innerContent = content;
 
-        // Only strip prefix if it actually started with the prefix
-        if (content.startsWith(matchedJester.prefix + ":") || content.startsWith(matchedJester.prefix + " :")) {
-            innerContent = content.substring(matchedJester.prefix.length).trim();
-            while (innerContent.startsWith(":")) {
-                innerContent = innerContent.substring(1).trim();
+        // If we found the jester via prefix matching (not autoproxy), strip the prefix/suffix
+        if (p || s) {
+            innerContent = content.slice(p.length, s ? -s.length : undefined).trim();
+            
+            if (innerContent.startsWith(':')) {
+                 innerContent = innerContent.substring(1).trim();
             }
         }
 
@@ -662,11 +730,11 @@ const handleMessage = async (message) => {
             }
 
             // Priority:
-            // 1. Validate 'discord_avatar_url' if present.
+            // 1. Validate 'fluxer_avatar_url' if present.
             // 2. If valid, use it.
             // 3. If invalid or missing, use 'local_avatar_url', upload it, and update DB.
 
-            let avatarUrl = matchedJester.discord_avatar_url;
+            let avatarUrl = matchedJester.fluxer_avatar_url;
             let needsUpload = false;
 
             if (avatarUrl) {
@@ -695,7 +763,7 @@ const handleMessage = async (message) => {
                         avatarUrl = cachedUrl;
                         console.log(`Found in session cache: ${avatarUrl}`);
                         try {
-                            await axios.patch(`${API_URL}/${matchedJester.id}`, { discord_avatar_url: avatarUrl });
+                            await axios.patch(`${API_URL}/${matchedJester.id}`, { fluxer_avatar_url: avatarUrl });
                         } catch (e) {
                             console.error("Failed to patch DB from cache:", e.message);
                         }
@@ -729,7 +797,7 @@ const handleMessage = async (message) => {
 
                                     try {
                                         await axios.patch(`${API_URL}/${matchedJester.id}`, {
-                                            discord_avatar_url: avatarUrl
+                                            fluxer_avatar_url: avatarUrl
                                         });
                                         console.log('Saved Fluxer Avatar URL to database!');
                                     } catch (dbErr) {
@@ -791,7 +859,7 @@ const handleMessage = async (message) => {
 
                             let replyContent = refMsg.content || '*[Attachment/Embed]*';
 
-                            // Truncate if too long (Discord limits)
+                            // Truncate if too long (Fluxer limits)
                             if (replyContent.length > 50) {
                                 replyContent = replyContent.substring(0, 50) + '...';
                             }
@@ -830,6 +898,18 @@ const handleMessage = async (message) => {
                     await message.delete();
                 } catch (delErr) {
                     console.warn('Failed to delete original message:', delErr.message);
+                }
+
+                // Increment message count in DB
+                try {
+                    await axios.post(`${API_URL}/${matchedJester.id}/increment`);
+                    // Update local cache
+                    if (jesters) {
+                        const jCached = jesters.find(j => j.id === matchedJester.id);
+                        if (jCached) jCached.message_count = (jCached.message_count || 0) + 1;
+                    }
+                } catch (incErr) {
+                    console.error('Failed to increment message count:', incErr.message);
                 }
 
             } catch (webhookErr) {
@@ -882,10 +962,10 @@ client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
             return;
         }
     }
-    
-    // Ignore if the content hasn't changed (e.g., an embed was added by Discord)
+
+    // Ignore if the content hasn't changed (e.g., an embed was added by Fluxer)
     if (oldMessage && oldMessage.content === newMessage.content) return;
-    
+
     await handleMessage(newMessage);
 });
 
@@ -1006,7 +1086,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                     // Let @fluxerjs build the correct local route automatically.
                     // This perfectly avoids the 404 URL mismatch.
                     let route = Routes.webhookExecute(message.webhookId, tokenToUse) + `/messages/${message.id}`;
-                    
+
                     // Construct the query parameters if it's in a thread
                     const query = threadId ? new URLSearchParams({ thread_id: threadId }) : undefined;
 
@@ -1019,7 +1099,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                         query: query,
                         auth: false // Webhooks don't use bot token auth
                     });
-                    
+
                     console.log('✅ Edit HTTP PATCH resolved successfully.');
                     console.log('----------------------------\n');
 

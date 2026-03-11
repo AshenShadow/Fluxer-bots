@@ -10,5 +10,5 @@ jesters = Jester.objects.all()
 for j in jesters:
     print(f"ID: {j.id}, Name: {j.name}, Prefix: {j.prefix}")
     print(f"  Local Avatar: {j.avatar}")
-    print(f"  Discord Avatar: {j.discord_avatar_url}")
+    print(f"  Fluxer Avatar: {j.fluxer_avatar_url}")
     print("-" * 20)

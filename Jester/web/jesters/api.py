@@ -13,7 +13,7 @@ class JesterSchema(Schema):
     description: Optional[str] = None
     prefix: str
     avatar_url: Optional[str] = None
-    discord_avatar_url: Optional[str] = None
+    fluxer_avatar_url: Optional[str] = None
     user_id: str
     group_ids: List[int] = []
 
@@ -22,7 +22,7 @@ class JesterGroupSchema(Schema):
     name: str
     description: Optional[str] = None
     image_url: Optional[str] = None
-    discord_image_url: Optional[str] = None
+    fluxer_image_url: Optional[str] = None
     user_id: str
 
 @router.get("/user/{user_id}", response=List[dict])
@@ -38,7 +38,7 @@ def list_jesters(request, user_id: str):
             "user_id": j.user_id,
             "avatar_url": j.avatar_url,
             "local_avatar_url": j.avatar.url if j.avatar else None,
-            "discord_avatar_url": j.discord_avatar_url,
+            "fluxer_avatar_url": j.fluxer_avatar_url,
             "group_ids": list(j.groups.values_list('id', flat=True)),
             "message_count": j.message_count
         })
@@ -57,7 +57,7 @@ def list_all_jesters(request):
             "user_id": j.user_id,
             "avatar_url": j.avatar_url,
             "local_avatar_url": j.avatar.url if j.avatar else None,
-            "discord_avatar_url": j.discord_avatar_url,
+            "fluxer_avatar_url": j.fluxer_avatar_url,
             "group_ids": list(j.groups.values_list('id', flat=True)),
             "message_count": j.message_count
         })
@@ -102,12 +102,12 @@ def create_jester(request,
         "prefix": jester.prefix,
         "user_id": jester.user_id,
         "avatar_url": jester.avatar_url,
-        "discord_avatar_url": jester.discord_avatar_url,
+        "fluxer_avatar_url": jester.fluxer_avatar_url,
         "group_ids": []
     }
 
 class JesterUpdateSchema(Schema):
-    discord_avatar_url: Optional[str] = None
+    fluxer_avatar_url: Optional[str] = None
     name: Optional[str] = None
     display_name: Optional[str] = None
     description: Optional[str] = None
@@ -117,8 +117,8 @@ class JesterUpdateSchema(Schema):
 @router.patch("/{jester_id}", response=dict)
 def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
     jester = Jester.objects.get(id=jester_id)
-    if payload.discord_avatar_url is not None:
-        jester.discord_avatar_url = payload.discord_avatar_url
+    if payload.fluxer_avatar_url is not None:
+        jester.fluxer_avatar_url = payload.fluxer_avatar_url
     if payload.name is not None:
         jester.name = payload.name
     if payload.display_name is not None:
@@ -142,7 +142,7 @@ def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
         "prefix": jester.prefix,
         "user_id": jester.user_id,
         "avatar_url": jester.avatar_url,
-        "discord_avatar_url": jester.discord_avatar_url,
+        "fluxer_avatar_url": jester.fluxer_avatar_url,
         "group_ids": list(jester.groups.values_list('id', flat=True))
     }
 
@@ -150,8 +150,8 @@ def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
 def update_avatar(request, jester_id: int, avatar: UploadedFile = File(...)):
     jester = Jester.objects.get(id=jester_id)
     jester.avatar = avatar
-    # Reset discord_avatar_url so the bot will re-upload it to Discord/Fluxer on next proxy
-    jester.discord_avatar_url = None
+    # Reset fluxer_avatar_url so the bot will re-upload it to Fluxer/Fluxer on next proxy
+    jester.fluxer_avatar_url = None
     jester.save()
     return jester
 @router.delete("/{jester_id}", response={204: None})
@@ -176,7 +176,7 @@ def list_groups(request, user_id: str):
             "name": g.name,
             "description": g.description,
             "image_url": g.image_url,
-            "discord_image_url": g.discord_image_url,
+            "fluxer_image_url": g.fluxer_image_url,
             "user_id": g.user_id
         })
     return groups
@@ -200,7 +200,7 @@ def create_group(request,
 class GroupUpdateSchema(Schema):
     name: Optional[str] = None
     description: Optional[str] = None
-    discord_image_url: Optional[str] = None
+    fluxer_image_url: Optional[str] = None
 
 @router.patch("/groups/{group_id}", response=JesterGroupSchema)
 def update_group(request, group_id: int, payload: GroupUpdateSchema):
@@ -209,8 +209,8 @@ def update_group(request, group_id: int, payload: GroupUpdateSchema):
         group.name = payload.name
     if payload.description is not None:
         group.description = payload.description
-    if payload.discord_image_url is not None:
-        group.discord_image_url = payload.discord_image_url
+    if payload.fluxer_image_url is not None:
+        group.fluxer_image_url = payload.fluxer_image_url
     group.save()
     return group
 
@@ -218,7 +218,7 @@ def update_group(request, group_id: int, payload: GroupUpdateSchema):
 def update_group_image(request, group_id: int, image: UploadedFile = File(...)):
     group = JesterGroup.objects.get(id=group_id)
     group.image = image
-    group.discord_image_url = None
+    group.fluxer_image_url = None
     group.save()
     return group
 
