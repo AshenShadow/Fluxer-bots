@@ -483,8 +483,11 @@
                         <div v-if="showOptionsDropdown" @click="showOptionsDropdown = false" style="position:fixed; top:0; left:0; right:0; bottom:0; z-index:999;"></div>
                         
                         <div v-if="showOptionsDropdown" class="tb-dropdown">
+                            <div class="tb-dropdown-item" @click="sortDefault()">Sort Default</div>
                             <div class="tb-dropdown-item" @click="sortJesters('az')">Sort A-Z</div>
+                            <div class="tb-dropdown-item" @click="sortJesters('za')">Sort Z-A</div>
                             <div class="tb-dropdown-item" @click="sortJesters('newest')">Sort Newest</div>
+                            <div class="tb-dropdown-item" @click="sortJesters('oldest')">Sort Oldest</div>
                             <div class="tb-dropdown-divider"></div>
                             <div class="tb-dropdown-item" @click="exportJesters">Export to JSON</div>
                         </div>
@@ -611,8 +614,10 @@
                             placeholder="Jester Prefix (Required)">
                     </div>
                     <button class="tb-btn tb-btn-primary" @click="saveInfo"
-                        :disabled="isSaving || !editForm.name || !editForm.prefix">
-                        [[ isSaving ? 'Saving...' : 'Save Changes' ]]
+                        :disabled="isSaving || !editForm.name || !editForm.prefix"
+                        :style="saveSuccessTimer ? 'background-color: #27ae60;' : ''">
+                        <span v-if="saveSuccessTimer">Saved!</span>
+                        <span v-else>[[ isSaving ? 'Saving...' : 'Save Changes' ]]</span>
                     </button>
                 </div>
 
@@ -804,6 +809,7 @@
 
                 activeTab: 'info',
                 isSaving: false,
+                saveSuccessTimer: null,
 
                 // Jester form
                 editForm: {
@@ -842,11 +848,19 @@
             toggleOptionsDropdown() {
                 this.showOptionsDropdown = !this.showOptionsDropdown;
             },
+            sortDefault() {
+                this.fetchJesters();
+                this.showOptionsDropdown = false;
+            },
             sortJesters(type) {
                 if (type === 'az') {
                     this.jesters.sort((a, b) => a.name.localeCompare(b.name));
+                } else if (type === 'za') {
+                    this.jesters.sort((a, b) => b.name.localeCompare(a.name));
                 } else if (type === 'newest') {
                     this.jesters.sort((a, b) => b.id - a.id);
+                } else if (type === 'oldest') {
+                    this.jesters.sort((a, b) => a.id - b.id);
                 }
                 this.showOptionsDropdown = false;
             },
@@ -864,7 +878,7 @@
                 event.stopPropagation();
                 if(confirm(`Are you absolutely sure you want to delete ${jester.name}? This is irreversible.`)) {
                     try {
-                        const response = await fetch(`/api/jesters/${jester.id}/`, {
+                        const response = await fetch(`/api/jesters/${jester.id}`, {
                             method: 'DELETE',
                             headers: { 'X-CSRFToken': this.getCsrfToken() }
                         });
@@ -967,6 +981,13 @@
                         this.jesters[index].group_ids = updated.group_ids;
                         this.selectedJester = this.jesters[index];
                     }
+                    
+                    // Show success feedback
+                    if (this.saveSuccessTimer) clearTimeout(this.saveSuccessTimer);
+                    this.saveSuccessTimer = setTimeout(() => {
+                        this.saveSuccessTimer = null;
+                    }, 2000);
+
                 } catch (e) {
                     console.error("Error saving info!", e);
                 } finally {

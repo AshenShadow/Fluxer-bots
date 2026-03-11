@@ -14,34 +14,6 @@
         overflow: hidden;
     }
 
-    /* Theatrical Background & Spotlight */
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        /* Harlequin Diamond Pattern */
-        background-color: transparent;
-        background-image:
-            linear-gradient(135deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
-            linear-gradient(225deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
-            linear-gradient(45deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%),
-            linear-gradient(315deg, rgba(155, 89, 182, 0.04) 25%, transparent 25%);
-        background-position: 40px 0, 40px 0, 0 0, 0 0;
-        background-size: 80px 80px;
-        background-repeat: repeat;
-        z-index: -2;
-    }
-
-    .hero-section::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        /* Spotlight Effect */
-        background: radial-gradient(circle at 50% 30%, rgba(155, 89, 182, 0.2) 0%, rgba(26, 26, 46, 0.8) 60%, var(--bg) 100%);
-        z-index: -1;
-        pointer-events: none;
-    }
-
     .bg-watermark {
         position: absolute;
         width: 300px;
@@ -404,6 +376,7 @@
             </svg>
             Invite to Server
         </a>
+        {% endif %}
         <a href="https://github.com/Fluxer-bots/Jester" target="_blank" class="btn-hero btn-hero-secondary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -413,11 +386,45 @@
             </svg>
             View Source
         </a>
-        {% endif %}
     </div>
 
-    <!-- Playing Card Features Grid -->
     <div class="features-grid">
+        {% if latest_changelog %}
+        <div class="feature-card" style="grid-column: 1 / -1; margin-bottom: 2rem; padding: 2rem; text-align: left; display: flex; flex-direction: column; align-items: flex-start;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 1rem;">
+                <h3 class="feature-title" style="margin-bottom: 0;">Latest Update: {{ latest_changelog.version }}</h3>
+                <span style="color: #888; font-size: 0.9rem;">{{ latest_changelog.created_at|date:"F j, Y" }}</span>
+            </div>
+            
+            <div style="color: #b3b3cc; font-size: 1.05rem; line-height: 1.6; display: flex; gap: 2rem; width: 100%;">
+                {% if latest_changelog.bot_changes %}
+                <div style="flex: 1;">
+                    <strong style="color: var(--primary-h);">Bot Changes</strong>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.bot_changes }}</div>
+                </div>
+                {% endif %}
+                
+                {% if latest_changelog.web_changes %}
+                <div style="flex: 1;">
+                    <strong style="color: var(--primary-h);">Web Changes</strong>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.web_changes }}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <a href="{% url 'changelog' %}" class="btn-hero btn-hero-primary" style="margin-top: 1.5rem; padding: 0.6rem 1.2rem; font-size: 0.95rem;">
+                View Full Changelog
+            </a>
+        </div>
+        {% else %}
+        <div class="feature-card" style="grid-column: 1 / -1; margin-bottom: 2rem; padding: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <h3 class="feature-title" style="margin-bottom: 0.5rem;">Latest Update</h3>
+            <p style="color: #b3b3cc; font-size: 1.05rem; margin-bottom: 1rem;">No updates have been posted yet. Check back soon!</p>
+            <a href="{% url 'changelog' %}" class="btn-hero btn-hero-primary" style="padding: 0.6rem 1.2rem; font-size: 0.95rem;">
+                View Changelog
+            </a>
+        </div>
+        {% endif %}
         <div class="feature-card">
             <div class="feature-icon-wrapper">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

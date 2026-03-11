@@ -1,0 +1,285 @@
+{% extends 'jesters/base.html' %}
+
+{% block title %}{{ report.title }} - Jester's Mask{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #d5b8ff, #9b59b6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 5px 15px rgba(155, 89, 182, 0.2);
+        word-break: break-all;
+    }
+
+    .report-container {
+        background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        animation: fadeUp 0.8s ease-out forwards;
+        transform: translateY(20px);
+        opacity: 0;
+        position: relative;
+    }
+
+    /* Decorative Card Elements (Corners) */
+    .report-container::before,
+    .report-container::after {
+        content: '♦';
+        position: absolute;
+        font-size: 1.5rem;
+        color: rgba(155, 89, 182, 0.2);
+    }
+
+    .report-container::before {
+        top: 10px;
+        left: 15px;
+    }
+
+    .report-container::after {
+        bottom: 10px;
+        right: 15px;
+        transform: rotate(180deg);
+    }
+
+    .report-meta {
+        font-size: 0.9rem;
+        color: #888;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .tag-open {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        color: #ff7675;
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    .tag-resolved {
+        background: rgba(46, 204, 113, 0.15);
+        border: 1px solid rgba(46, 204, 113, 0.3);
+        color: #55efc4;
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    .report-desc {
+        color: #e0e0e0;
+        line-height: 1.6;
+        font-size: 1.05rem;
+        white-space: pre-wrap;
+    }
+
+    .btn-hero {
+        padding: 0.8rem 2rem; 
+        font-size: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .btn-hero-primary {
+        background: linear-gradient(135deg, var(--primary), #732d91);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 20px rgba(155, 89, 182, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-hero-primary:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(155, 89, 182, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        color: #fff;
+    }
+
+    .btn-hero-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-hero-danger:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(231, 76, 60, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        color: #fff;
+    }
+
+    .comment-card {
+        background: rgba(30, 20, 40, 0.6);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-left: 3px solid var(--primary);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .comment-card:hover {
+        transform: translateX(5px);
+        background: rgba(42, 31, 61, 0.8);
+    }
+
+    .comment-meta {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .comment-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(155, 89, 182, 0.2);
+        object-fit: cover;
+    }
+
+    .comment-text {
+        color: #d1d1e0;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .tb-input {
+        width: 100%;
+        background-color: rgba(20, 15, 25, 0.8);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 6px;
+        padding: 12px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+
+    .tb-input:focus {
+        outline: none;
+        border-color: #9b59b6;
+        box-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
+    }
+
+    @keyframes fadeUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="page-header">
+    <a href="{% url 'reports' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: #a0a0b0; text-decoration: none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Reports
+    </a>
+    <h1 class="page-title">{{ report.title }}</h1>
+</div>
+
+<div class="report-container">
+    <div class="report-meta">
+        <span class="tag-{{ report.status }}">{{ report.status }}</span>
+        <span>
+            Reported by:
+            {% if report.author_avatar %}
+            <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin: 0 4px;">
+            {% endif %}
+            <strong style="color: #e0c3fc;">{{ report.author_name }}</strong> ({{ report.author_id }})
+        </span>
+        <span>{{ report.created_at|date:"F j, Y, g:i a" }}</span>
+    </div>
+    <div class="report-desc">{{ report.description }}</div>
+
+    {% if can_manage and report.status == 'open' %}
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 1rem;">
+        <form method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="resolve">
+            <button type="submit" class="btn-hero btn-hero-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Mark as Resolved
+            </button>
+        </form>
+        <form method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this report? This cannot be undone.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <button type="submit" class="btn-hero btn-hero-danger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Delete Report
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<h3 style="margin-bottom: 1.5rem; color: #fff;">Comments</h3>
+
+<div style="margin-bottom: 2rem;">
+    {% for comment in comments %}
+    <div class="comment-card">
+        <div class="comment-meta">
+            {% if comment.author_avatar %}
+            <img src="{{ comment.author_avatar }}" alt="{{ comment.author_name }} avatar" class="comment-avatar">
+            {% endif %}
+            <strong style="color: #e0c3fc;">{{ comment.author_name }}</strong> ({{ comment.author_id }})
+            <span style="opacity: 0.5;">&bull;</span> {{ comment.created_at|timesince }} ago
+        </div>
+        <div class="comment-text">{{ comment.text }}</div>
+    </div>
+    {% empty %}
+    <p style="color: #888; font-style: italic;">No comments yet.</p>
+    {% endfor %}
+</div>
+
+{% if user.is_authenticated and report.status == 'open' %}
+<div class="form-container" style="background: rgba(20, 15, 25, 0.4); border-radius: 8px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
+    <h4 style="margin-bottom: 1rem; color: #fff;">Add a Comment</h4>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="comment">
+        <textarea name="text" class="tb-input" placeholder="Type your comment here..." rows="4" required></textarea>
+        <button type="submit" class="btn-hero btn-hero-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            Post Comment
+        </button>
+    </form>
+</div>
+{% elif report.status == 'resolved' %}
+<div class="alert alert-success" style="text-align: center;">
+    This report has been marked as resolved and is closed to new comments.
+</div>
+{% endif %}
+
+{% endblock %}

@@ -59,3 +59,35 @@ class Autoproxy(models.Model):
 
     def __str__(self):
         return f"User {self.user_id} -> {self.jester.name} in {self.channel_id}"
+
+class Changelog(models.Model):
+    version = models.CharField(max_length=50)
+    bot_changes = models.TextField(blank=True, null=True)
+    web_changes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Version {self.version}"
+
+class Report(models.Model):
+    STATUS_CHOICES = (
+        ('open', 'Open'),
+        ('resolved', 'Resolved'),
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    author_id = models.CharField(max_length=50, help_text="Fluxer User ID")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.status.upper()}] {self.title}"
+
+class ReportComment(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='comments')
+    author_id = models.CharField(max_length=50, help_text="Fluxer User ID")
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.author_id} on {self.report.title}"
