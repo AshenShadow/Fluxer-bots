@@ -198,6 +198,28 @@
             transform: translateY(0);
         }
     }
+
+    .category-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    .cat-bug { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.3); color: #ff7675; }
+    .cat-feature { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.3); color: #55efc4; }
+    .cat-question { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: #74b9ff; }
+    .cat-other { background: rgba(155,89,182,0.15); border: 1px solid rgba(155,89,182,0.3); color: #c39bd3; }
+
+    .user-clickable {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: opacity 0.2s;
+    }
+    .user-clickable:hover { opacity: 0.8; }
 </style>
 
 <div class="page-header">
@@ -211,10 +233,10 @@
 <div class="report-container">
     <div class="report-meta">
         <span class="tag-{{ report.status }}">{{ report.status }}</span>
-        <span>
-            Reported by:
+        <span class="category-badge cat-{{ report.category }}">{{ report.get_category_display }}</span>
+        <span class="user-clickable" onclick="showProfileCard('{{ report.author_id }}', this)">
             {% if report.author_avatar %}
-            <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin: 0 4px;">
+            <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle;">
             {% endif %}
             <strong style="color: #e0c3fc;">{{ report.author_name }}</strong> ({{ report.author_id }})
         </span>
@@ -250,10 +272,12 @@
     {% for comment in comments %}
     <div class="comment-card">
         <div class="comment-meta">
-            {% if comment.author_avatar %}
-            <img src="{{ comment.author_avatar }}" alt="{{ comment.author_name }} avatar" class="comment-avatar">
-            {% endif %}
-            <strong style="color: #e0c3fc;">{{ comment.author_name }}</strong> ({{ comment.author_id }})
+            <span class="user-clickable" onclick="showProfileCard('{{ comment.author_id }}', this)">
+                {% if comment.author_avatar %}
+                <img src="{{ comment.author_avatar }}" alt="{{ comment.author_name }} avatar" class="comment-avatar">
+                {% endif %}
+                <strong style="color: #e0c3fc;">{{ comment.author_name }}</strong> ({{ comment.author_id }})
+            </span>
             <span style="opacity: 0.5;">&bull;</span> {{ comment.created_at|timesince }} ago
         </div>
         <div class="comment-text">{{ comment.text }}</div>

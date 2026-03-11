@@ -39,7 +39,8 @@ def list_jesters(request, user_id: str):
             "avatar_url": j.avatar_url,
             "local_avatar_url": j.avatar.url if j.avatar else None,
             "discord_avatar_url": j.discord_avatar_url,
-            "group_ids": list(j.groups.values_list('id', flat=True))
+            "group_ids": list(j.groups.values_list('id', flat=True)),
+            "message_count": j.message_count
         })
     return jesters
 
@@ -57,7 +58,8 @@ def list_all_jesters(request):
             "avatar_url": j.avatar_url,
             "local_avatar_url": j.avatar.url if j.avatar else None,
             "discord_avatar_url": j.discord_avatar_url,
-            "group_ids": list(j.groups.values_list('id', flat=True))
+            "group_ids": list(j.groups.values_list('id', flat=True)),
+            "message_count": j.message_count
         })
     return jesters
 
@@ -272,3 +274,43 @@ def remove_autoproxy(request, user_id: str, channel_id: str):
     if deleted:
         return 204, None
     raise HttpError(404, "No autoproxy active in this channel")
+
+# --- User Info Endpoint ---
+
+@router.get("/user-info/{fluxer_id}", response=dict)
+def get_user_info(request, fluxer_id: str):
+    from users.models import FluxerUser
+    from allauth.socialaccount.models import SocialAccount
+    
+    name = 'Unknown User'
+    avatar = ''
+    joined = '-'
+    
+    try:
+        fu = FluxerUser.objects.get(fluxer_id=fluxer_id)
+        name = fu.display_name or fu.fluxer_tag
+        avatar = fu.avatar_url
+        joined = fu.created_at.strftime('%b %Y')
+    except FluxerUser.DoesNotExist:
+        pass
+    
+    if name == 'Unknown User' or not avatar:
+        try:
+            sa = SocialAccount.objects.get(uid=fluxer_id, provider='fluxer')
+            extra = sa.extra_data or {}
+            name = extra.get('global_name') or extra.get('username') or name
+            avatar = extra.get('avatar_url') or avatar
+            joined = sa.date_joined.strftime('%b %Y') if hasattr(sa, 'date_joined') else joined
+        except SocialAccount.DoesNotExist:
+            pass
+    
+    jester_count = Jester.objects.filter(user_id=fluxer_id).count()
+    total_messages = sum(Jester.objects.filter(user_id=fluxer_id).values_list('message_count', flat=True))
+    
+    return {
+        'display_name': name,
+        'avatar_url': avatar,
+        'jester_count': jester_count,
+        'total_messages': total_messages,
+        'joined': joined,
+    }

@@ -380,7 +380,76 @@
     </main>
     {% endblock %}
 
+    <!-- Toast Container -->
+    <div id="toast-container" style="position:fixed;top:80px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+
+    <!-- User Profile Card Popup -->
+    <div id="profile-card-overlay" onclick="closeProfileCard()" style="display:none;position:fixed;inset:0;z-index:9998;"></div>
+    <div id="profile-card" style="display:none;position:fixed;z-index:9999;width:300px;background:linear-gradient(160deg,#2a1f3d,#1a1a2e);border:2px solid rgba(155,89,182,0.4);border-radius:12px;padding:1.5rem;box-shadow:0 20px 50px rgba(0,0,0,0.7);animation:fadeUp 0.2s ease-out;">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;">
+            <img id="pc-avatar" src="" style="width:48px;height:48px;border-radius:50%;border:2px solid #9b59b6;object-fit:cover;" onerror="this.style.display='none'">
+            <div>
+                <div id="pc-name" style="font-weight:700;color:#fff;font-size:1.1rem;"></div>
+                <div id="pc-id" style="font-size:0.8rem;color:#888;"></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:1rem;margin-top:0.5rem;">
+            <div style="flex:1;text-align:center;background:rgba(155,89,182,0.1);border-radius:8px;padding:0.5rem;">
+                <div id="pc-jesters" style="font-size:1.2rem;font-weight:700;color:#c39bd3;">0</div>
+                <div style="font-size:0.75rem;color:#888;text-transform:uppercase;">Jesters</div>
+            </div>
+            <div style="flex:1;text-align:center;background:rgba(155,89,182,0.1);border-radius:8px;padding:0.5rem;">
+                <div id="pc-joined" style="font-size:0.85rem;font-weight:600;color:#c39bd3;">-</div>
+                <div style="font-size:0.75rem;color:#888;text-transform:uppercase;">Joined</div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Toast system
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: '#27ae60', error: '#e74c3c', info: '#9b59b6' };
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            toast.style.cssText = `pointer-events:auto;display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1.25rem;border-radius:10px;background:linear-gradient(135deg,${colors[type]}22,${colors[type]}11);border:1px solid ${colors[type]}66;color:#fff;font-size:0.95rem;box-shadow:0 8px 24px rgba(0,0,0,0.4);backdrop-filter:blur(12px);opacity:0;transform:translateX(40px);transition:all 0.3s ease;max-width:350px;`;
+            toast.innerHTML = `<span style="font-size:1.1rem;font-weight:700;color:${colors[type]}">${icons[type]}</span>${message}`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+            setTimeout(() => {
+                toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Profile Card system
+        async function showProfileCard(fluxerId, anchorEl) {
+            const card = document.getElementById('profile-card');
+            const overlay = document.getElementById('profile-card-overlay');
+            try {
+                const res = await fetch(`/api/jesters/user-info/${fluxerId}`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                document.getElementById('pc-avatar').src = data.avatar_url || '';
+                document.getElementById('pc-avatar').style.display = data.avatar_url ? 'block' : 'none';
+                document.getElementById('pc-name').textContent = data.display_name || 'Unknown';
+                document.getElementById('pc-id').textContent = fluxerId;
+                document.getElementById('pc-jesters').textContent = data.jester_count || 0;
+                document.getElementById('pc-joined').textContent = data.joined || '-';
+                const rect = anchorEl.getBoundingClientRect();
+                card.style.top = (rect.bottom + 8) + 'px';
+                card.style.left = Math.min(rect.left, window.innerWidth - 320) + 'px';
+                card.style.display = 'block';
+                overlay.style.display = 'block';
+            } catch(e) { showToast('Could not load user info', 'error'); }
+        }
+
+        function closeProfileCard() {
+            document.getElementById('profile-card').style.display = 'none';
+            document.getElementById('profile-card-overlay').style.display = 'none';
+        }
+
+        // Nav active link
         document.querySelectorAll('.nav-links a').forEach(link => {
             if (link.href === window.location.href) link.classList.add('active');
         });

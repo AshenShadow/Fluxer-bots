@@ -37,6 +37,7 @@ class Jester(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    message_count = models.IntegerField(default=0)
 
     @property
     def avatar_url(self):
@@ -74,10 +75,17 @@ class Report(models.Model):
         ('open', 'Open'),
         ('resolved', 'Resolved'),
     )
+    CATEGORY_CHOICES = (
+        ('bug', 'Bug'),
+        ('feature', 'Feature Request'),
+        ('question', 'Question'),
+        ('other', 'Other'),
+    )
     title = models.CharField(max_length=200)
     description = models.TextField()
     author_id = models.CharField(max_length=50, help_text="Fluxer User ID")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='bug')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

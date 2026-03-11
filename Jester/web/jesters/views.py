@@ -131,20 +131,35 @@ def reports_view(request):
         user_id = _get_fluxer_id(request.user)
         title = request.POST.get('title')
         description = request.POST.get('description')
+        category = request.POST.get('category', 'bug')
         if title and description and user_id:
             Report.objects.create(
                 title=title,
                 description=description,
-                author_id=user_id
+                author_id=user_id,
+                category=category
             )
             return redirect('reports')
             
-    reports = Report.objects.filter(status='open').order_by('-created_at')
-    for report in reports:
+    search_query = request.GET.get('q', '').strip()
+    
+    open_reports = Report.objects.filter(status='open').order_by('-created_at')
+    resolved_reports = Report.objects.filter(status='resolved').order_by('-created_at')
+    
+    if search_query:
+        open_reports = open_reports.filter(title__icontains=search_query)
+        resolved_reports = resolved_reports.filter(title__icontains=search_query)
+    
+    for report in list(open_reports) + list(resolved_reports):
         name, avatar = _get_user_display_info(report.author_id)
         report.author_name = name
         report.author_avatar = avatar
-    return render(request, 'jesters/reports.html', {'reports': reports})
+    
+    return render(request, 'jesters/reports.html', {
+        'open_reports': open_reports,
+        'resolved_reports': resolved_reports,
+        'search_query': search_query,
+    })
 
 def report_detail_view(request, report_id):
     report = get_object_or_404(Report, id=report_id)

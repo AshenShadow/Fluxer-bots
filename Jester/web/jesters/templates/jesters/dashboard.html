@@ -461,6 +461,88 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    /* Mobile responsive */
+    .mobile-hamburger {
+        display: none;
+        position: fixed;
+        top: 70px;
+        left: 12px;
+        z-index: 1001;
+        background: linear-gradient(135deg, var(--primary), #732d91);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+    }
+
+    .tb-sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+        body { overflow: auto !important; }
+        .main-container { height: auto !important; min-height: calc(100vh - 120px) !important; }
+        #app { flex-direction: column; }
+        .mobile-hamburger { display: flex; align-items: center; justify-content: center; }
+        .tb-sidebar {
+            position: fixed;
+            left: -300px;
+            top: var(--nav-height);
+            bottom: 0;
+            width: 300px;
+            z-index: 1000;
+            transition: left 0.3s ease;
+            background-color: rgba(20, 15, 25, 0.95);
+        }
+        .tb-sidebar.mobile-open { left: 0; }
+        .tb-sidebar-overlay.mobile-open { display: block; }
+        .tb-main { width: 100%; }
+        .stats-bar { padding: 0.5rem; }
+        .stat-card { min-width: 80px; padding: 0.5rem; }
+        .stat-value { font-size: 1.1rem; }
+    }
+
+    /* Stats bar */
+    .stats-bar {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        flex: 1;
+        min-width: 120px;
+        background: rgba(155, 89, 182, 0.08);
+        border: 1px solid rgba(155, 89, 182, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-h);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+    }
 </style>
 {% endblock %}
 
@@ -468,8 +550,15 @@
 <div id="app" v-cloak>
     {% csrf_token %}
 
+    <!-- Mobile Hamburger -->
+    <button class="mobile-hamburger" @click="sidebarOpen = !sidebarOpen">
+        <span v-if="!sidebarOpen">☰</span>
+        <span v-else>✕</span>
+    </button>
+    <div class="tb-sidebar-overlay" :class="{'mobile-open': sidebarOpen}" @click="sidebarOpen = false"></div>
+
     <!-- Sidebar -->
-    <div class="tb-sidebar">
+    <div class="tb-sidebar" :class="{'mobile-open': sidebarOpen}">
         <div class="tb-sidebar-section">
             <div class="tb-sidebar-header">
                 <span>Your Jesters</span>
@@ -550,6 +639,22 @@
     <!-- Main Content -->
     <div class="tb-main">
         <div class="tb-main-scroll">
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value">[[ jesters.length ]]</div>
+                    <div class="stat-label">Jesters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">[[ groups.length ]]</div>
+                    <div class="stat-label">Groups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">[[ totalMessages ]]</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+            </div>
+
             <!-- Empty State -->
             <div v-if="currentView === 'none'" class="tb-empty-state">
             <div class="tb-box-icon"></div>
@@ -571,6 +676,9 @@
 
                     <div class="tb-label" style="margin-top:16px;">Prefix</div>
                     <div class="tb-field">[[ selectedJester.prefix ]]:text</div>
+
+                    <div class="tb-label" style="margin-top:16px;">Messages Proxied</div>
+                    <div class="tb-field" style="color:var(--primary-h);font-weight:600;">[[ selectedJester.message_count || 0 ]]</div>
                 </div>
             </div>
 
@@ -806,6 +914,7 @@
 
                 isDeleteMode: false,
                 showOptionsDropdown: false,
+                sidebarOpen: false,
 
                 activeTab: 'info',
                 isSaving: false,
@@ -835,6 +944,11 @@
                     name: '',
                     description: ''
                 }
+            }
+        },
+        computed: {
+            totalMessages() {
+                return this.jesters.reduce((sum, j) => sum + (j.message_count || 0), 0);
             }
         },
         mounted() {

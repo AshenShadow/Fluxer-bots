@@ -23,85 +23,150 @@
         text-shadow: 0 5px 15px rgba(155, 89, 182, 0.2);
     }
 
+    .search-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-bar input {
+        flex: 1;
+        background-color: rgba(20, 15, 25, 0.8);
+        border: 1px solid rgba(155, 89, 182, 0.3);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar input:focus {
+        outline: none;
+        border-color: #9b59b6;
+        box-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
+    }
+
+    .search-bar button {
+        background: linear-gradient(135deg, var(--primary), #732d91);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(155, 89, 182, 0.4);
+    }
+
+    .tab-bar {
+        display: flex;
+        gap: 0;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid rgba(155, 89, 182, 0.2);
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        color: #888;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover { color: #c39bd3; }
+
+    .tab-btn.active {
+        color: #fff;
+        border-bottom-color: #9b59b6;
+    }
+
     .report-card {
         display: block;
         background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
         border: 2px solid rgba(155, 89, 182, 0.3);
         border-radius: 12px;
-        padding: 3rem 2rem;
-        background: rgba(30, 20, 40, 0.6);
-        border: 1px solid rgba(155, 89, 182, 0.2);
-        backdrop-filter: blur(8px);
+        padding: 2rem;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         text-decoration: none;
         color: var(--text);
         animation: fadeUp 0.8s ease-out forwards;
         transform: translateY(20px);
         opacity: 0;
+        position: relative;
     }
 
-    /* Decorative Card Elements (Corners) */
-    .report-card::before,
-    .report-card::after {
+    .report-card::before, .report-card::after {
         content: '♦';
         position: absolute;
         font-size: 1.5rem;
         color: rgba(155, 89, 182, 0.2);
     }
-
-    .report-card::before {
-        top: 10px;
-        left: 15px;
-    }
-
-    .report-card::after {
-        bottom: 10px;
-        right: 15px;
-        transform: rotate(180deg);
-    }
+    .report-card::before { top: 10px; left: 15px; }
+    .report-card::after { bottom: 10px; right: 15px; transform: rotate(180deg); }
 
     .report-card:hover {
         border-color: rgba(155, 89, 182, 0.6);
         box-shadow: 0 25px 50px rgba(155, 89, 182, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2);
-        background: rgba(42, 31, 61, 0.8);
         transform: translateY(-5px);
     }
 
-    .report-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: #fff;
-        line-height: 1.2;
-    }
+    .report-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; color: #fff; }
 
     .report-desc {
         color: #b3b3cc;
-        font-size: 1.05rem;
+        font-size: 1rem;
         line-height: 1.6;
         display: -webkit-box;
-        -webkit-line-clamp: 5;
-        line-clamp: 5;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
     .report-meta {
-        margin-top: 1.5rem;
-        font-size: 0.9rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
         color: #888;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
+
+    .category-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+    .cat-bug { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.3); color: #ff7675; }
+    .cat-feature { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.3); color: #55efc4; }
+    .cat-question { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: #74b9ff; }
+    .cat-other { background: rgba(155,89,182,0.15); border: 1px solid rgba(155,89,182,0.3); color: #c39bd3; }
 
     .form-container {
         background: linear-gradient(160deg, #2a1f3d 0%, #1a1a2e 100%);
         border: 2px solid rgba(155, 89, 182, 0.3);
         border-radius: 12px;
-        padding: 3rem 2rem;
-        margin-bottom: 3rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         animation: fadeUp 0.8s ease-out forwards;
         transform: translateY(20px);
@@ -109,25 +174,11 @@
         position: relative;
     }
 
-    /* Decorative Card Elements (Corners) */
-    .form-container::before,
-    .form-container::after {
-        content: '♦';
-        position: absolute;
-        font-size: 1.5rem;
-        color: rgba(155, 89, 182, 0.2);
+    .form-container::before, .form-container::after {
+        content: '♦'; position: absolute; font-size: 1.5rem; color: rgba(155, 89, 182, 0.2);
     }
-
-    .form-container::before {
-        top: 10px;
-        left: 15px;
-    }
-
-    .form-container::after {
-        bottom: 10px;
-        right: 15px;
-        transform: rotate(180deg);
-    }
+    .form-container::before { top: 10px; left: 15px; }
+    .form-container::after { bottom: 10px; right: 15px; transform: rotate(180deg); }
 
     .tb-input {
         width: 100%;
@@ -148,12 +199,20 @@
         box-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
     }
 
+    select.tb-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239b59b6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 2.5rem;
+    }
+
     .btn-hero-primary {
         background: linear-gradient(135deg, var(--primary), #732d91);
         color: #fff;
         border: 1px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 10px 20px rgba(155, 89, 182, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        padding: 0.8rem 2rem; 
+        padding: 0.8rem 2rem;
         font-size: 1rem;
         border-radius: 12px;
         font-weight: 600;
@@ -164,22 +223,26 @@
         text-decoration: none;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        position: relative;
-        overflow: hidden;
         cursor: pointer;
     }
 
     .btn-hero-primary:hover {
         transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 15px 30px rgba(155, 89, 182, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        box-shadow: 0 15px 30px rgba(155, 89, 182, 0.6);
         color: #fff;
     }
 
+    .user-clickable {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: opacity 0.2s;
+    }
+    .user-clickable:hover { opacity: 0.8; }
+
     @keyframes fadeUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
@@ -187,13 +250,24 @@
     <h1 class="page-title">Reports</h1>
 </div>
 
+<!-- Search Bar -->
+<div class="search-bar">
+    <input type="text" id="report-search" placeholder="Search reports by title..." oninput="filterReports()">
+</div>
+
 {% if user.is_authenticated %}
 <div class="form-container">
     <h3 style="margin-bottom: 1.5rem; color: #fff;">Submit a Report</h3>
-    <form method="POST">
+    <form method="POST" id="report-form" onsubmit="localStorage.removeItem('report_draft');">
         {% csrf_token %}
-        <input type="text" name="title" class="tb-input" placeholder="Title" required maxlength="200">
-        <textarea name="description" class="tb-input" placeholder="Description" rows="5" required></textarea>
+        <input type="text" name="title" id="report-title" class="tb-input" placeholder="Title" required maxlength="200">
+        <select name="category" class="tb-input">
+            <option value="bug">🐛 Bug</option>
+            <option value="feature">✨ Feature Request</option>
+            <option value="question">❓ Question</option>
+            <option value="other">📌 Other</option>
+        </select>
+        <textarea name="description" id="report-desc" class="tb-input" placeholder="Description" rows="5" required></textarea>
         <button type="submit" class="btn-hero-primary">Submit Report</button>
     </form>
 </div>
@@ -209,27 +283,94 @@
 </div>
 {% endif %}
 
-<h3 style="margin-bottom: 1rem; color: #fff;">Open Reports</h3>
-{% if reports %}
-    <div style="display: grid; gap: 1rem;">
-    {% for report in reports %}
-        <a href="{% url 'report_detail' report.id %}" class="report-card">
-            <div class="report-title">{{ report.title|truncatechars:20 }}</div>
-            <div class="report-desc">{{ report.description }}</div>
-            <div class="report-meta">
-                <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                    {% if report.author_avatar %}
-                    <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
-                    {% endif %}
-                    By: {{ report.author_name }} ({{ report.author_id }})
-                </span>
-                <span>{{ report.created_at|timesince }} ago</span>
-            </div>
-        </a>
-    {% endfor %}
-    </div>
-{% else %}
-    <p style="color: #b9bbbe; text-align: center; padding: 2rem;">No open reports.</p>
-{% endif %}
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('open', this)">Open ({{ open_reports|length }})</button>
+    <button class="tab-btn" onclick="switchTab('resolved', this)">Resolved ({{ resolved_reports|length }})</button>
+</div>
+
+<!-- Open Reports -->
+<div id="tab-open" style="display: grid; gap: 1rem;">
+{% for report in open_reports %}
+    <a href="{% url 'report_detail' report.id %}" class="report-card">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <span class="category-badge cat-{{ report.category }}">{{ report.get_category_display }}</span>
+            <div class="report-title" style="margin-bottom: 0;">{{ report.title|truncatechars:60 }}</div>
+        </div>
+        <div class="report-desc">{{ report.description }}</div>
+        <div class="report-meta">
+            <span class="user-clickable" onclick="event.preventDefault(); showProfileCard('{{ report.author_id }}', this);">
+                {% if report.author_avatar %}
+                <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+                {% endif %}
+                {{ report.author_name }} ({{ report.author_id }})
+            </span>
+            <span>{{ report.created_at|timesince }} ago</span>
+        </div>
+    </a>
+{% empty %}
+    <p style="color: #b9bbbe; text-align: center; padding: 2rem;">No open reports{{ search_query|yesno:", matching your search,"}}</p>
+{% endfor %}
+</div>
+
+<!-- Resolved Reports -->
+<div id="tab-resolved" style="display: none; gap: 1rem;">
+{% for report in resolved_reports %}
+    <a href="{% url 'report_detail' report.id %}" class="report-card" style="opacity: 0.7;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <span class="category-badge cat-{{ report.category }}">{{ report.get_category_display }}</span>
+            <span style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.3);color:#55efc4;padding:0.2rem 0.6rem;border-radius:99px;font-size:0.7rem;text-transform:uppercase;font-weight:bold;">Resolved</span>
+            <div class="report-title" style="margin-bottom: 0;">{{ report.title|truncatechars:60 }}</div>
+        </div>
+        <div class="report-desc">{{ report.description }}</div>
+        <div class="report-meta">
+            <span class="user-clickable" onclick="event.preventDefault(); showProfileCard('{{ report.author_id }}', this);">
+                {% if report.author_avatar %}
+                <img src="{{ report.author_avatar }}" alt="" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">
+                {% endif %}
+                {{ report.author_name }}
+            </span>
+            <span>{{ report.created_at|timesince }} ago</span>
+        </div>
+    </a>
+{% empty %}
+    <p style="color: #b9bbbe; text-align: center; padding: 2rem;">No resolved reports.</p>
+{% endfor %}
+</div>
+
+<script>
+    function switchTab(tab, btn) {
+        document.getElementById('tab-open').style.display = tab === 'open' ? 'grid' : 'none';
+        document.getElementById('tab-resolved').style.display = tab === 'resolved' ? 'grid' : 'none';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function filterReports() {
+        const query = document.getElementById('report-search').value.toLowerCase();
+        document.querySelectorAll('.report-card').forEach(card => {
+            const title = (card.querySelector('.report-title') || {}).textContent || '';
+            const desc = (card.querySelector('.report-desc') || {}).textContent || '';
+            card.style.display = (title.toLowerCase().includes(query) || desc.toLowerCase().includes(query)) ? '' : 'none';
+        });
+    }
+
+    // Auto-save drafts
+    const titleEl = document.getElementById('report-title');
+    const descEl = document.getElementById('report-desc');
+    if (titleEl && descEl) {
+        const draft = JSON.parse(localStorage.getItem('report_draft') || '{}');
+        if (draft.title) titleEl.value = draft.title;
+        if (draft.description) descEl.value = draft.description;
+
+        function saveDraft() {
+            localStorage.setItem('report_draft', JSON.stringify({
+                title: titleEl.value, description: descEl.value
+            }));
+        }
+        titleEl.addEventListener('input', saveDraft);
+        descEl.addEventListener('input', saveDraft);
+    }
+</script>
 
 {% endblock %}
