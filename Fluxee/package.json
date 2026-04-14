@@ -1,0 +1,13 @@
+{
+  "name": "fluxee-bot",
+  "version": "1.0.0",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@fluxerjs/core": "^1.2.3",
+    "dotenv": "^17.3.1"
+  }
+}
