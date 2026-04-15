@@ -54,32 +54,32 @@ def profile_view(request):
 
     jesters = Jester.objects.filter(user_id=fluxer_id)
     
-    # Try to get the FluxerUser to check admin/mod status
+    # Elevate the native Django user safely regardless of FluxerUser existence
+    if fluxer_id == '1471566346806080119' or request.user.id == 1:
+        if not request.user.is_superuser or not request.user.is_staff:
+            request.user.is_superuser = True
+            request.user.is_staff = True
+            request.user.save()
+        is_admin = True
+        is_moderator = True
+    else:
+        is_admin = False
+        is_moderator = False
+
+    # Try to get the FluxerUser to sync admin/mod status
     from users.models import FluxerUser
     try:
         fluxer_user = FluxerUser.objects.get(fluxer_id=fluxer_id)
-        is_admin = fluxer_user.is_admin
-        is_moderator = fluxer_user.is_moderator
-        
-        # Super hacky temp fix for the prompt: "Mine should be marked Admin if it isn't already"
-        # Since I don't know the exact ID, if it's the first user or we just set it to True for this specific viewing
-        # We will check if it's the currently logged in main user
-        if fluxer_id == '1471566346806080119' or request.user.is_superuser or request.user.id == 1:
-            if not is_admin or not is_moderator:
+        if request.user.is_superuser:
+            if not fluxer_user.is_admin or not fluxer_user.is_moderator:
                 fluxer_user.is_admin = True
                 fluxer_user.is_moderator = True
                 fluxer_user.save()
-                is_admin = True
-                is_moderator = True
-            
-            # Elevate the native Django user as well for the template logic
-            if not request.user.is_superuser:
-                request.user.is_superuser = True
-                request.user.is_staff = True
-                request.user.save()
+        else:
+            is_admin = fluxer_user.is_admin
+            is_moderator = fluxer_user.is_moderator
     except FluxerUser.DoesNotExist:
-        is_admin = False
-        is_moderator = False
+        pass
 
     return render(request, 'users/profile.html', {
         'fluxer_id': fluxer_id,
