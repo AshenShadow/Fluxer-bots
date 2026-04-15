@@ -116,7 +116,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGIN_REDIRECT_URL = '/profile/'
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'http'
+# Trust Railway's proxy for HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Use https by default in production if proxy headers aren't enough
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = os.environ.get('ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'https')
 
 SOCIALACCOUNT_PROVIDERS = {
     'fluxer': {
