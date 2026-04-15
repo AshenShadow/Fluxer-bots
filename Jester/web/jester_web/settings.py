@@ -7,11 +7,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FLUXER_CLIENT_ID = os.environ.get('FLUXER_CLIENT_ID', '1473229591074357261')
 FLUXER_CLIENT_SECRET = os.environ.get('FLUXER_CLIENT_SECRET', 'cmWI5AEQXofjoUQHUD2DGokADKsgcc1YOkFMbPjeuXk')
 
-SECRET_KEY = 'django-insecure-mp(v$cp^9y)*a=ce6wi0=640^&21tdqa2isc_*0xc^2+(k&zy^'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'nurturing-learning-production-60c3.up.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -36,6 +36,7 @@ SITE_ID = 1
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,6 +85,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# For whitenoise caching/compression in production:
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
