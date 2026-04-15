@@ -11,7 +11,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'nurturing-learning-production-60c3.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'nurturing-learning-production-60c3.up.railway.app', 'jestersmask.up.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

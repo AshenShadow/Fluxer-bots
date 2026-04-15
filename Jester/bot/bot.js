@@ -15,7 +15,7 @@ const client = new Client({
 });
 
 // Fallback to the Railway production domain or local dev server
-const API_URL = process.env.API_URL || 'https://nurturing-learning-production-60c3.up.railway.app/api/jesters';
+const API_URL = process.env.API_URL || 'https://jestersmask.up.railway.app/api/jesters';
 
 // Map<UserId, List[Jester]>
 const tupperCache = new Map();
