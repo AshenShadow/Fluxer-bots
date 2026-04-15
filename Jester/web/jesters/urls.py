@@ -7,6 +7,7 @@ urlpatterns = [
     path('create/', views.create_jester, name='create_jester'),
     path('browse/', views.browse_jesters, name='browse_jesters'),
     path('changelog/', views.changelog_view, name='changelog'),
+    path('moderator/', views.moderator_dashboard, name='moderator_dashboard'),
     path('reports/', views.reports_view, name='reports'),
     path('reports/<int:report_id>/', views.report_detail_view, name='report_detail'),
 ]

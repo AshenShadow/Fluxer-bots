@@ -355,7 +355,9 @@
                 <em>Jester's Mask</em>
             </a>
             <ul class="nav-links" style="list-style:none;display:flex;align-items:center;gap:1.5rem;">
-                <li><a href="https://fluxer.gg/4lqIkgjk" target="_blank" rel="noopener noreferrer">Community</a></li>
+                {% if user.is_superuser %}
+                <li><a href="{% url 'moderator_dashboard' %}"><span style="color:var(--primary);">🛡️ Mod Panel</span></a></li>
+                {% endif %}
                 <li><a href="{% url 'changelog' %}">Changelog</a></li>
                 <li><a href="{% url 'reports' %}">Reports</a></li>
                 {% if user.is_authenticated %}

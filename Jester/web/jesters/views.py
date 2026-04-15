@@ -98,6 +98,28 @@ def browse_jesters(request):
     jesters = Jester.objects.all().order_by('-created_at')
     return render(request, 'jesters/browse_jesters.html', {'jesters': jesters})
 
+@login_required(login_url='login')
+def moderator_dashboard(request):
+    if not request.user.is_superuser:
+        return redirect('index')
+    
+    total_jesters = Jester.objects.count()
+    total_users = FluxerUser.objects.count()
+    open_reports_count = Report.objects.filter(status='open').count()
+    
+    recent_reports = Report.objects.filter(status='open').order_by('-created_at')[:10]
+    for report in recent_reports:
+        name, avatar = _get_user_display_info(report.author_id)
+        report.author_name = name
+        report.author_avatar = avatar
+        
+    return render(request, 'jesters/moderator.html', {
+        'total_jesters': total_jesters,
+        'total_users': total_users,
+        'open_reports_count': open_reports_count,
+        'recent_reports': recent_reports,
+    })
+
 def changelog_view(request):
     user_id = _get_fluxer_id(request.user) if request.user.is_authenticated else None
     is_admin = False
