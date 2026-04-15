@@ -14,7 +14,8 @@ const client = new Client({
     suppressIntentWarning: true,
 });
 
-const API_URL = 'http://127.0.0.1:8000/api/jesters';
+// Fallback to the Railway production domain or local dev server
+const API_URL = process.env.API_URL || 'https://nurturing-learning-production-60c3.up.railway.app/api/jesters';
 
 // Map<UserId, List[Jester]>
 const tupperCache = new Map();

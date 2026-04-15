@@ -1,7 +1,7 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
 from ninja import NinjaAPI
 
 from jesters.api import router as jesters_router
@@ -23,4 +23,11 @@ urlpatterns = [
     path('accounts/fluxer/login/', oauth2_login, name='fluxer_login'),
     path('accounts/fluxer/login/callback/', oauth2_callback, name='fluxer_callback'),
     path('', include('jesters.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Force serve media in production
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
+]
