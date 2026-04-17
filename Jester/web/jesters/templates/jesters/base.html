@@ -165,6 +165,41 @@
             color: var(--text);
         }
 
+        .nav-links.show {
+            display: flex !important;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block !important;
+            }
+            .nav-container {
+                position: relative;
+            }
+            .nav-links {
+                display: none !important;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: -2rem;
+                right: -2rem;
+                background: rgba(30, 22, 40, 0.95);
+                backdrop-filter: blur(12px);
+                padding: 1.5rem;
+                gap: 1rem;
+                border-bottom: 1px solid rgba(155, 89, 182, 0.3);
+            }
+            .nav-links a {
+                padding: 0.5rem 0;
+                width: 100%;
+                text-align: center;
+            }
+            .nav-links form {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
         /* Buttons */
         .btn {
             display: inline-flex;
@@ -354,6 +389,7 @@
                     style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">
                 <em>Jester's Mask</em>
             </a>
+            <button class="mobile-menu-btn" style="display:none; background:transparent; border:none; color:#fff; font-size:1.8rem; cursor:pointer; padding:0; line-height: 1;" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
             <ul class="nav-links" style="list-style:none;display:flex;align-items:center;gap:1.5rem;">
                 {% if user.is_superuser %}
                 <li><a href="{% url 'moderator_dashboard' %}"><span style="color:var(--primary);">🛡️ Mod Panel</span></a></li>
