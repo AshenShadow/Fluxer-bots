@@ -34,7 +34,7 @@
     }
 
     .hero-title {
-        font-size: clamp(3.5rem, 9vw, 6rem);
+        font-size: clamp(2rem, 10vw, 6rem);
         font-weight: 800;
         line-height: 1.05;
         margin-bottom: 1.5rem;
@@ -44,6 +44,8 @@
         -webkit-text-fill-color: transparent;
         text-shadow: 0 10px 30px rgba(155, 89, 182, 0.3);
         animation: dropIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        word-wrap: break-word;
+        max-width: 100%;
     }
 
     .hero-subtitle {
@@ -425,18 +427,14 @@
                 {% if latest_changelog.bot_changes %}
                 <div style="flex: 1;">
                     <strong style="color: var(--primary-h);">Bot Changes</strong>
-                    <div
-                        style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ latest_changelog.bot_changes }}</div>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.bot_changes }}</div>
                 </div>
                 {% endif %}
 
                 {% if latest_changelog.web_changes %}
                 <div style="flex: 1;">
                     <strong style="color: var(--primary-h);">Web Changes</strong>
-                    <div
-                        style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ latest_changelog.web_changes }}</div>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.web_changes }}</div>
                 </div>
                 {% endif %}
             </div>
