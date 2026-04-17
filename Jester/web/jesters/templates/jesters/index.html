@@ -12,6 +12,8 @@
         text-align: center;
         padding: 2rem;
         overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .bg-watermark {
@@ -34,7 +36,7 @@
     }
 
     .hero-title {
-        font-size: clamp(2rem, 10vw, 6rem);
+        font-size: clamp(3.5rem, 12vw, 6rem);
         font-weight: 800;
         line-height: 1.05;
         margin-bottom: 1.5rem;
@@ -173,9 +175,18 @@
     @media (max-width: 900px) {
         .features-grid {
             grid-template-columns: 1fr;
-            max-width: 400px;
+            max-width: 100%;
             margin-left: auto;
             margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .feature-card {
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
         }
     }
 
@@ -319,6 +330,43 @@
     .glass-panel svg {
         color: #e0c3fc;
     }
+
+    /* Changelog card on index - mobile */
+    .changelog-preview-header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .changelog-preview-columns {
+        color: #b3b3cc;
+        font-size: 1.05rem;
+        line-height: 1.6;
+        display: flex;
+        gap: 2rem;
+        width: 100%;
+    }
+    @media (max-width: 600px) {
+        .changelog-preview-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        .changelog-preview-header .feature-title {
+            font-size: 1.2rem;
+        }
+        .changelog-preview-columns {
+            flex-direction: column;
+            gap: 1.2rem;
+            font-size: 0.95rem;
+        }
+        .changelog-preview-btn {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="hero-section">
@@ -417,29 +465,28 @@
         {% if latest_changelog %}
         <div class="feature-card"
             style="grid-column: 1 / -1; margin-bottom: 2rem; padding: 2rem; text-align: left; display: flex; flex-direction: column; align-items: flex-start;">
-            <div
-                style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 1rem;">
+            <div class="changelog-preview-header">
                 <h3 class="feature-title" style="margin-bottom: 0;">Latest Update: {{ latest_changelog.version }}</h3>
-                <span style="color: #888; font-size: 0.9rem;">{{ latest_changelog.created_at|date:"F j, Y" }}</span>
+                <span style="color: #888; font-size: 0.9rem; white-space: nowrap;">{{ latest_changelog.created_at|date:"F j, Y" }}</span>
             </div>
 
-            <div style="color: #b3b3cc; font-size: 1.05rem; line-height: 1.6; display: flex; gap: 2rem; width: 100%;">
+            <div class="changelog-preview-columns">
                 {% if latest_changelog.bot_changes %}
-                <div style="flex: 1;">
-                    <strong style="color: var(--primary-h);">Bot Changes</strong>
-                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.bot_changes }}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <strong style="color: var(--primary-h); display: block; margin-bottom: 0.5rem;">Bot Changes</strong>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 6; line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">{{ latest_changelog.bot_changes }}</div>
                 </div>
                 {% endif %}
 
                 {% if latest_changelog.web_changes %}
-                <div style="flex: 1;">
-                    <strong style="color: var(--primary-h);">Web Changes</strong>
-                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 10; line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden;">{{ latest_changelog.web_changes }}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <strong style="color: var(--primary-h); display: block; margin-bottom: 0.5rem;">Web Changes</strong>
+                    <div style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 6; line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;">{{ latest_changelog.web_changes }}</div>
                 </div>
                 {% endif %}
             </div>
 
-            <a href="{% url 'changelog' %}" class="btn-hero btn-hero-primary"
+            <a href="{% url 'changelog' %}" class="btn-hero btn-hero-primary changelog-preview-btn"
                 style="margin-top: 1.5rem; padding: 0.6rem 1.2rem; font-size: 0.95rem;">
                 View Full Changelog
             </a>
