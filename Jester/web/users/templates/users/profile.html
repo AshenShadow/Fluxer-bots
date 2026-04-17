@@ -153,9 +153,9 @@
 
         <!-- Jesters section -->
         <div class="theatrical-card" style="animation-delay: 0.1s;">
-            <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom: 0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
                 <h3 style="font-size:1.3rem;font-weight:700; color: #fff;">Your Cast of Characters</h3>
-                <div style="display:flex;align-items:center;gap:1.5rem;">
+                <div style="display:flex;align-items:center;gap:1.5rem; flex-wrap: wrap;">
                     <span style="color:#b3b3cc;font-size:0.9rem; font-weight: 600;">{{ jesters|length }} total</span>
                     <a href="{% url 'dashboard' %}" class="btn-hero"
                         style="padding: 0.5rem 1rem; font-size: 0.9rem; background: linear-gradient(135deg, var(--primary), #732d91); color: #fff; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 5px 10px rgba(155, 89, 182, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px;">

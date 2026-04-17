@@ -244,6 +244,14 @@
     @keyframes fadeUp {
         to { opacity: 1; transform: translateY(0); }
     }
+
+    @media (max-width: 768px) {
+        .page-header { justify-content: center; text-align: center; }
+        .page-title { text-align: center; width: 100%; }
+        .tab-bar { flex-wrap: wrap; justify-content: center; }
+        .form-actions { flex-direction: column !important; width: 100%; }
+        .form-actions button { width: 100%; justify-content: center; }
+    }
 </style>
 
 <div class="page-header">
@@ -268,7 +276,10 @@
             <option value="other">📌 Other</option>
         </select>
         <textarea name="description" id="report-desc" class="tb-input" placeholder="Description" rows="5" required></textarea>
-        <button type="submit" class="btn-hero-primary">Submit Report</button>
+        <div class="form-actions" style="display: flex; gap: 1rem; align-items: center;">
+            <button type="submit" class="btn-hero-primary">Submit Report</button>
+            <button type="button" class="btn-hero-primary" style="background: rgba(20, 15, 25, 0.8); border: 1px solid rgba(155, 89, 182, 0.3); box-shadow: none;" onclick="document.getElementById('report-form').reset(); localStorage.removeItem('report_draft');">Clear</button>
+        </div>
     </form>
 </div>
 {% else %}

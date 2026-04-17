@@ -193,6 +193,15 @@
             transform: translateY(0);
         }
     }
+
+    @media (max-width: 768px) {
+        .page-header { justify-content: center; text-align: center; }
+        .page-title { text-align: center; width: 100%; }
+        .form-actions { flex-direction: column !important; width: 100%; display: flex; }
+        .form-actions button { width: 100%; justify-content: center; }
+        .changelog-version { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .changelog-date { margin-left: 0; }
+    }
 </style>
 
 <div class="page-header">
@@ -219,7 +228,9 @@
             <textarea name="web_changes" id="cl-web" class="tb-input" placeholder="- Added Dashboard&#10;- UI Overhaul" rows="5"></textarea>
         </div>
 
-        <button type="submit" class="btn-hero-primary">Post Changelog</button>
+        <div class="form-actions">
+            <button type="submit" class="btn-hero-primary">Post Changelog</button>
+        </div>
     </form>
 </div>
 {% endif %}

@@ -465,10 +465,6 @@
     /* Mobile responsive */
     .mobile-hamburger {
         display: none;
-        position: fixed;
-        top: 70px;
-        left: 12px;
-        z-index: 1001;
         background: linear-gradient(135deg, var(--primary), #732d91);
         border: none;
         border-radius: 8px;
@@ -478,6 +474,8 @@
         font-size: 1.2rem;
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+        margin: 10px 10px 0 10px;
+        flex-shrink: 0;
     }
 
     .tb-sidebar-overlay {
@@ -490,25 +488,30 @@
 
     @media (max-width: 768px) {
         body { overflow: auto !important; }
-        .main-container { height: auto !important; min-height: calc(100vh - 120px) !important; }
+        .main-container { height: auto !important; min-height: calc(100vh - 120px) !important; padding: 0 !important; }
         #app { flex-direction: column; }
-        .mobile-hamburger { display: flex; align-items: center; justify-content: center; }
+        .mobile-hamburger { display: flex; align-items: center; justify-content: center; align-self: flex-start; }
         .tb-sidebar {
             position: fixed;
-            left: -300px;
+            left: -320px;
             top: var(--nav-height);
             bottom: 0;
-            width: 300px;
+            width: 320px;
+            max-width: 100vw;
             z-index: 1000;
             transition: left 0.3s ease;
             background-color: rgba(20, 15, 25, 0.95);
         }
         .tb-sidebar.mobile-open { left: 0; }
         .tb-sidebar-overlay.mobile-open { display: block; }
-        .tb-main { width: 100%; }
-        .stats-bar { padding: 0.5rem; }
+        .tb-main { width: 100%; display: flex; flex-direction: column; }
+        .tb-main-scroll { position: relative; height: auto; }
+        .stats-bar { padding: 0.5rem; margin-top: 0; }
         .stat-card { min-width: 80px; padding: 0.5rem; }
         .stat-value { font-size: 1.1rem; }
+        .tb-sidebar-header { flex-wrap: wrap; gap: 0.5rem; height: auto; padding: 10px 15px; }
+        .tb-sidebar-actions { flex-wrap: wrap; justify-content: flex-end; }
+        .tb-name-small { max-width: 150px; }
     }
 
     /* Stats bar */

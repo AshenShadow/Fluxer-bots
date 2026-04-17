@@ -3,10 +3,20 @@
 {% block title %}Moderator Panel{% endblock %}
 
 {% block content %}
-<div style="max-width: 1000px; margin: 0 auto;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+<style>
+    .mod-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .mod-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(135deg, #fff, #d5b8ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; word-break: break-word; line-height: 1.1; }
+    @media (max-width: 768px) {
+        .mod-header { flex-direction: column; text-align: center; justify-content: center; align-items: center; }
+        .mod-header > div { width: 100%; text-align: center; }
+        .mod-header a { width: 100%; text-align: center; }
+        .mod-title { font-size: 2rem; }
+    }
+</style>
+<div style="max-width: 1000px; margin: 0 auto; width: 100%;">
+    <div class="mod-header">
         <div>
-            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(135deg, #fff, #d5b8ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Moderator Panel</h1>
+            <h1 class="mod-title">Moderator Panel</h1>
             <p style="color: var(--text-muted);">Overview of the platform and pending reports.</p>
         </div>
         <a href="{% url 'reports' %}" class="btn btn-secondary" style="border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 8px;">View All Reports</a>

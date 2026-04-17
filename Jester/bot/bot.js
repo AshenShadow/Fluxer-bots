@@ -24,28 +24,9 @@ const uploadedAvatarUrls = new Map();
 // Map<WebhookMsgId, WebhookToken>
 const webhookMessageCache = new Map();
 
-client.on(Events.Ready, async () => {
+client.on(Events.Ready, () => {
+    // client.user might be undefined in some versions of Fluxer if not fully ready, but typically it is.
     console.log(`Logged in as ${client.user ? client.user.tag : 'Bot'}!`);
-    try {
-        await client.rest.patch('/users/@me', {
-            body: {
-                bio: `A proxy bot for all your roleplay needs\n\nYou can report problems or suggest features via the\nCommunity: [Community link]\nSite: [Site link]`
-            }
-        });
-        console.log('Successfully updated bot profile description (bio).');
-    } catch (e) {
-        try {
-            // Also try editing application description
-            await client.rest.patch('/applications/@me', {
-                body: {
-                    description: `A proxy bot for all your roleplay needs\n\nYou can report problems or suggest features via the\nCommunity: [Community link]\nSite: [Site link]`
-                }
-            });
-            console.log('Successfully updated application description.');
-        } catch (e2) {
-            console.log('Could not automatically set bot description via API.');
-        }
-    }
 });
 
 client.on(Events.Error, (err) => console.error('[BOT ERROR]', err?.message ?? err));
