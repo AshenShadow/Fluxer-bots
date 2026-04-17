@@ -36,7 +36,7 @@
     }
 
     .hero-title {
-        font-size: clamp(3.2rem, 12vw, 6rem);
+        font-size: clamp(2.5rem, 10vw, 6rem);
         font-weight: 800;
         line-height: 1.05;
         margin-bottom: 1.5rem;
@@ -46,8 +46,9 @@
         -webkit-text-fill-color: transparent;
         text-shadow: 0 10px 30px rgba(155, 89, 182, 0.3);
         animation: dropIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        word-wrap: break-word;
         max-width: 100%;
+        word-break: normal;
+        overflow-wrap: normal;
     }
 
     .hero-subtitle {
@@ -173,6 +174,13 @@
     }
 
     @media (max-width: 900px) {
+        .hero-section {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .hero-title {
+            font-size: clamp(3.2rem, 14vw, 6rem);
+        }
         .features-grid {
             grid-template-columns: 1fr;
             max-width: 100%;
