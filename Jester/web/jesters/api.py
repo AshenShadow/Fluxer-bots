@@ -120,20 +120,6 @@ def create_jester(request,
 
 from .models import JesterGroup
 
-@router.get("/groups/{user_id}", response=List[dict])
-def list_groups(request, user_id: str):
-    groups = []
-    for g in JesterGroup.objects.filter(user_id=user_id):
-        groups.append({
-            "id": g.id,
-            "name": g.name,
-            "description": g.description,
-            "image_url": g.image_url,
-            "fluxer_image_url": g.fluxer_image_url,
-            "user_id": g.user_id
-        })
-    return groups
-
 @router.post("/groups", response=JesterGroupSchema)
 def create_group(request, 
                  name: str = Form(...), 
@@ -196,6 +182,20 @@ def delete_group(request, group_id: int):
         return 204, None
     except JesterGroup.DoesNotExist:
         raise HttpError(404, "Group not found")
+
+@router.get("/groups/{user_id}", response=List[dict])
+def list_groups(request, user_id: str):
+    groups = []
+    for g in JesterGroup.objects.filter(user_id=user_id):
+        groups.append({
+            "id": g.id,
+            "name": g.name,
+            "description": g.description,
+            "image_url": g.image_url,
+            "fluxer_image_url": g.fluxer_image_url,
+            "user_id": g.user_id
+        })
+    return groups
 
 class JesterUpdateSchema(Schema):
     fluxer_avatar_url: Optional[str] = None
