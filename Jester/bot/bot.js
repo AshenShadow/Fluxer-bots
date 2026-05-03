@@ -755,9 +755,12 @@ const handleMessage = async (message) => {
 
             let avatarUrl = matchedJester.fluxer_avatar_url;
             if (!avatarUrl && matchedJester.avatar_url) {
+                // Use the length of the Base64 string as a cache buster! 
+                // If the image changes, the base64 string length will change, forcing Discord to bypass its cache.
+                const cacheBuster = matchedJester.local_avatar_url ? `?v=${matchedJester.local_avatar_url.length}` : '';
                 avatarUrl = matchedJester.avatar_url.startsWith('http')
                     ? matchedJester.avatar_url
-                    : `${API_URL.replace('/api/jesters', '')}${matchedJester.avatar_url}`;
+                    : `${API_URL.replace('/api/jesters', '')}${matchedJester.avatar_url}${cacheBuster}`;
             }
 
             console.log(`Final avatar URL sent to webhook: ${avatarUrl}`);

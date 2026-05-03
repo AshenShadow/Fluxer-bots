@@ -116,76 +116,6 @@ def create_jester(request,
         "group_ids": []
     }
 
-class JesterUpdateSchema(Schema):
-    fluxer_avatar_url: Optional[str] = None
-    name: Optional[str] = None
-    display_name: Optional[str] = None
-    description: Optional[str] = None
-    prefix: Optional[str] = None
-    group_ids: Optional[List[int]] = None
-
-@router.patch("/{jester_id}", response=dict)
-def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
-    jester = Jester.objects.get(id=jester_id)
-    if payload.fluxer_avatar_url is not None:
-        jester.fluxer_avatar_url = payload.fluxer_avatar_url
-    if payload.name is not None:
-        jester.name = payload.name
-    if payload.display_name is not None:
-        jester.display_name = payload.display_name
-    if payload.description is not None:
-        jester.description = payload.description
-    if payload.prefix is not None:
-        jester.prefix = payload.prefix
-        
-    jester.save()
-    
-    # Handle Groups many-to-many relationship
-    if payload.group_ids is not None:
-        jester.groups.set(payload.group_ids)
-
-    return {
-        "id": jester.id,
-        "name": jester.name,
-        "display_name": jester.display_name,
-        "description": jester.description,
-        "prefix": jester.prefix,
-        "user_id": jester.user_id,
-        "avatar_url": jester.avatar_url,
-        "fluxer_avatar_url": jester.fluxer_avatar_url,
-        "group_ids": list(jester.groups.values_list('id', flat=True))
-    }
-
-@router.post("/{jester_id}/avatar", response=JesterSchema)
-def update_avatar(request, jester_id: int, avatar: UploadedFile = File(...)):
-    jester = Jester.objects.get(id=jester_id)
-    jester.avatar = file_to_data_uri(avatar)
-    # Reset fluxer_avatar_url so the bot will re-upload it to Fluxer/Fluxer on next proxy
-    jester.fluxer_avatar_url = None
-    jester.save()
-    return jester
-
-@router.get("/{jester_id}/avatar.png")
-def get_avatar_image(request, jester_id: int):
-    try:
-        jester = Jester.objects.get(id=jester_id)
-        if jester.avatar and jester.avatar.startswith("data:image"):
-            header, encoded = jester.avatar.split(",", 1)
-            mime = header.split(":")[1].split(";")[0]
-            decoded = base64.b64decode(encoded)
-            return HttpResponse(decoded, content_type=mime)
-    except Jester.DoesNotExist:
-        pass
-    raise HttpError(404, "Avatar not found")
-@router.delete("/{jester_id}", response={204: None})
-def delete_jester(request, jester_id: int):
-    try:
-        jester = Jester.objects.get(id=jester_id)
-        jester.delete()
-        return 204, None
-    except Jester.DoesNotExist:
-        raise HttpError(404, "Jester not found")
-
 # --- Groups Endpoints ---
 
 from .models import JesterGroup
@@ -266,6 +196,79 @@ def delete_group(request, group_id: int):
         return 204, None
     except JesterGroup.DoesNotExist:
         raise HttpError(404, "Group not found")
+
+class JesterUpdateSchema(Schema):
+    fluxer_avatar_url: Optional[str] = None
+    name: Optional[str] = None
+    display_name: Optional[str] = None
+    description: Optional[str] = None
+    prefix: Optional[str] = None
+    group_ids: Optional[List[int]] = None
+
+@router.patch("/{jester_id}", response=dict)
+def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
+    jester = Jester.objects.get(id=jester_id)
+    if payload.fluxer_avatar_url is not None:
+        jester.fluxer_avatar_url = payload.fluxer_avatar_url
+    if payload.name is not None:
+        jester.name = payload.name
+    if payload.display_name is not None:
+        jester.display_name = payload.display_name
+    if payload.description is not None:
+        jester.description = payload.description
+    if payload.prefix is not None:
+        jester.prefix = payload.prefix
+        
+    jester.save()
+    
+    # Handle Groups many-to-many relationship
+    if payload.group_ids is not None:
+        jester.groups.set(payload.group_ids)
+
+    return {
+        "id": jester.id,
+        "name": jester.name,
+        "display_name": jester.display_name,
+        "description": jester.description,
+        "prefix": jester.prefix,
+        "user_id": jester.user_id,
+        "avatar_url": jester.avatar_url,
+        "fluxer_avatar_url": jester.fluxer_avatar_url,
+        "group_ids": list(jester.groups.values_list('id', flat=True))
+    }
+
+@router.post("/{jester_id}/avatar", response=JesterSchema)
+def update_avatar(request, jester_id: int, avatar: UploadedFile = File(...)):
+    jester = Jester.objects.get(id=jester_id)
+    jester.avatar = file_to_data_uri(avatar)
+    # Reset fluxer_avatar_url so the bot will re-upload it to Fluxer/Fluxer on next proxy
+    jester.fluxer_avatar_url = None
+    jester.save()
+    return jester
+
+@router.get("/{jester_id}/avatar.png")
+def get_avatar_image(request, jester_id: int):
+    try:
+        jester = Jester.objects.get(id=jester_id)
+        if jester.avatar and jester.avatar.startswith("data:image"):
+            header, encoded = jester.avatar.split(",", 1)
+            mime = header.split(":")[1].split(";")[0]
+            decoded = base64.b64decode(encoded)
+            return HttpResponse(decoded, content_type=mime)
+    except Jester.DoesNotExist:
+        pass
+    raise HttpError(404, "Avatar not found")
+
+@router.delete("/{jester_id}", response={204: None})
+def delete_jester(request, jester_id: int):
+    try:
+        jester = Jester.objects.get(id=jester_id)
+        jester.delete()
+        return 204, None
+    except Jester.DoesNotExist:
+        raise HttpError(404, "Jester not found")
+
+
 
 
 class AutoproxySchema(Schema):
