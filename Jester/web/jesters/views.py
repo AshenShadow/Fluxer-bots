@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from allauth.socialaccount.models import SocialAccount
 from .models import Jester, Changelog, Report, ReportComment
 from users.models import FluxerUser
@@ -105,7 +106,7 @@ def moderator_dashboard(request):
         return redirect('index')
     
     total_jesters = Jester.objects.count()
-    total_users = FluxerUser.objects.count()
+    total_users = User.objects.count()
     open_reports_count = Report.objects.filter(status='open').count()
     
     recent_reports = Report.objects.filter(status='open').order_by('-created_at')[:10]
