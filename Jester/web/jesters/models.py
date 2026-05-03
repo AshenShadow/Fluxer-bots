@@ -3,7 +3,7 @@ from django.db import models
 class JesterGroup(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='group_images/', null=True, blank=True)
+    image = models.TextField(blank=True, null=True)
     fluxer_image_url = models.CharField(max_length=255, blank=True, null=True)
     user_id = models.CharField(max_length=50, help_text="Fluxer User ID")
 
@@ -15,7 +15,7 @@ class JesterGroup(models.Model):
         if self.fluxer_image_url:
             return self.fluxer_image_url
         if self.image:
-            return self.image.url
+            return f"/api/jesters/groups/{self.id}/image.png"
         return ""
 
     def __str__(self):
@@ -26,9 +26,9 @@ class Jester(models.Model):
     description = models.TextField(blank=True, null=True)
     # Prefix only trigger: "Prefix: Message"
     prefix = models.CharField(max_length=50)
-    # File upload for avatar
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    # Store the Fluxer CDN URL here after first upload
+    # Base64 encoded avatar data
+    avatar = models.TextField(blank=True, null=True)
+    # Store the Fluxer CDN URL here after first upload (optional caching)
     fluxer_avatar_url = models.CharField(max_length=255, blank=True, null=True)
     user_id = models.CharField(max_length=50, help_text="Fluxer User ID")
     
@@ -44,7 +44,7 @@ class Jester(models.Model):
         if self.fluxer_avatar_url:
             return self.fluxer_avatar_url
         if self.avatar:
-            return self.avatar.url
+            return f"/api/jesters/{self.id}/avatar.png"
         return ""
 
     def __str__(self):

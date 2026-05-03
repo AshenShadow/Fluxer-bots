@@ -3,6 +3,16 @@ from ninja.errors import HttpError
 from typing import List, Optional
 from .models import Jester
 from django.conf import settings
+import base64
+from django.http import HttpResponse
+
+def file_to_data_uri(uploaded_file):
+    if not uploaded_file:
+        return None
+    data = uploaded_file.read()
+    b64 = base64.b64encode(data).decode('utf-8')
+    mime_type = getattr(uploaded_file, 'content_type', 'image/png')
+    return f"data:{mime_type};base64,{b64}"
 
 router = Router()
 
@@ -37,7 +47,7 @@ def list_jesters(request, user_id: str):
             "prefix": j.prefix,
             "user_id": j.user_id,
             "avatar_url": j.avatar_url,
-            "local_avatar_url": j.avatar.url if j.avatar else None,
+            "local_avatar_url": j.avatar if j.avatar else None,
             "fluxer_avatar_url": j.fluxer_avatar_url,
             "group_ids": list(j.groups.values_list('id', flat=True)),
             "message_count": j.message_count
@@ -56,7 +66,7 @@ def list_all_jesters(request):
             "prefix": j.prefix,
             "user_id": j.user_id,
             "avatar_url": j.avatar_url,
-            "local_avatar_url": j.avatar.url if j.avatar else None,
+            "local_avatar_url": j.avatar if j.avatar else None,
             "fluxer_avatar_url": j.fluxer_avatar_url,
             "group_ids": list(j.groups.values_list('id', flat=True)),
             "message_count": j.message_count
@@ -91,7 +101,7 @@ def create_jester(request,
     )
     if avatar:
         print("Avatar found, assigning.")
-        jester.avatar = avatar
+        jester.avatar = file_to_data_uri(avatar)
     jester.save()
     print(f"Jester saved: ID={jester.id}")
     return {
@@ -149,11 +159,24 @@ def update_jester(request, jester_id: int, payload: JesterUpdateSchema):
 @router.post("/{jester_id}/avatar", response=JesterSchema)
 def update_avatar(request, jester_id: int, avatar: UploadedFile = File(...)):
     jester = Jester.objects.get(id=jester_id)
-    jester.avatar = avatar
+    jester.avatar = file_to_data_uri(avatar)
     # Reset fluxer_avatar_url so the bot will re-upload it to Fluxer/Fluxer on next proxy
     jester.fluxer_avatar_url = None
     jester.save()
     return jester
+
+@router.get("/{jester_id}/avatar.png")
+def get_avatar_image(request, jester_id: int):
+    try:
+        jester = Jester.objects.get(id=jester_id)
+        if jester.avatar and jester.avatar.startswith("data:image"):
+            header, encoded = jester.avatar.split(",", 1)
+            mime = header.split(":")[1].split(";")[0]
+            decoded = base64.b64decode(encoded)
+            return HttpResponse(decoded, content_type=mime)
+    except Jester.DoesNotExist:
+        pass
+    raise HttpError(404, "Avatar not found")
 @router.delete("/{jester_id}", response={204: None})
 def delete_jester(request, jester_id: int):
     try:
@@ -193,7 +216,7 @@ def create_group(request,
         description=description
     )
     if image:
-        group.image = image
+        group.image = file_to_data_uri(image)
     group.save()
     return group
 
@@ -217,10 +240,23 @@ def update_group(request, group_id: int, payload: GroupUpdateSchema):
 @router.post("/groups/{group_id}/image", response=JesterGroupSchema)
 def update_group_image(request, group_id: int, image: UploadedFile = File(...)):
     group = JesterGroup.objects.get(id=group_id)
-    group.image = image
+    group.image = file_to_data_uri(image)
     group.fluxer_image_url = None
     group.save()
     return group
+
+@router.get("/groups/{group_id}/image.png")
+def get_group_image(request, group_id: int):
+    try:
+        group = JesterGroup.objects.get(id=group_id)
+        if group.image and group.image.startswith("data:image"):
+            header, encoded = group.image.split(",", 1)
+            mime = header.split(":")[1].split(";")[0]
+            decoded = base64.b64decode(encoded)
+            return HttpResponse(decoded, content_type=mime)
+    except JesterGroup.DoesNotExist:
+        pass
+    raise HttpError(404, "Image not found")
 
 @router.delete("/groups/{group_id}", response={204: None})
 def delete_group(request, group_id: int):

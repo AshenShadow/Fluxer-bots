@@ -254,7 +254,24 @@ const handleMessage = async (message) => {
         }
 
         if (showList) {
-            const totalJesters = jesters.length;
+            let groups = [];
+            try {
+                const groupRes = await axios.get(`${API_URL}/groups/${message.author.id}`);
+                groups = groupRes.data;
+            } catch (err) {}
+
+            // Create a sorted copy of jesters
+            const sortedJesters = [...jesters].sort((a, b) => {
+                const aGroupName = a.group_ids?.length ? (groups.find(g => g.id === a.group_ids[0])?.name || "Solo Acts") : "Solo Acts";
+                const bGroupName = b.group_ids?.length ? (groups.find(g => g.id === b.group_ids[0])?.name || "Solo Acts") : "Solo Acts";
+                
+                if (aGroupName === "Solo Acts" && bGroupName !== "Solo Acts") return 1;
+                if (aGroupName !== "Solo Acts" && bGroupName === "Solo Acts") return -1;
+                if (aGroupName !== bGroupName) return aGroupName.localeCompare(bGroupName);
+                return a.name.localeCompare(b.name);
+            });
+
+            const totalJesters = sortedJesters.length;
             const totalPages = Math.ceil(totalJesters / perPage);
 
             if (page < 1) page = 1;
@@ -262,16 +279,22 @@ const handleMessage = async (message) => {
 
             const start = (page - 1) * perPage;
             const end = start + perPage;
-            const jestersOnPage = jesters.slice(start, end);
+            const jestersOnPage = sortedJesters.slice(start, end);
 
             const embed = new EmbedBuilder()
-                .setTitle(`🎭 Your Jesters (Page ${page}/${totalPages})`)
+                .setTitle(`🎭 Your Jesters (Page ${page}/${totalPages || 1})`)
                 .setColor('#9b59b6')
                 .setFooter({ text: `Total: ${totalJesters} Jesters • Fluxer Jester Bot` });
 
             let description = "";
+            let currentGroup = null;
             jestersOnPage.forEach(j => {
-                description += `**${j.name}**: \`${j.prefix}\`\n`;
+                const groupName = j.group_ids?.length ? (groups.find(g => g.id === j.group_ids[0])?.name || "Solo Acts") : "Solo Acts";
+                if (groupName !== currentGroup) {
+                    description += `${description ? '\n' : ''}**— ${groupName} —**\n`;
+                    currentGroup = groupName;
+                }
+                description += `• **${j.name}**: \`${j.prefix}\`\n`;
             });
 
             embed.setDescription(description || "No jesters on this page.");
@@ -730,95 +753,11 @@ const handleMessage = async (message) => {
                 });
             }
 
-            // Priority:
-            // 1. Validate 'fluxer_avatar_url' if present.
-            // 2. If valid, use it.
-            // 3. If invalid or missing, use 'local_avatar_url', upload it, and update DB.
-
             let avatarUrl = matchedJester.fluxer_avatar_url;
-            let needsUpload = false;
-
-            if (avatarUrl) {
-                try {
-                    console.log(`Validating existing avatar URL: ${avatarUrl}`);
-                    await axios.head(avatarUrl);
-                    console.log("Avatar URL is valid.");
-                } catch (err) {
-                    console.warn(`Avatar URL validation failed (${err.response ? err.response.status : err.message}). Falling back to local upload.`);
-                    avatarUrl = null;
-                    needsUpload = true;
-                }
-            } else {
-                needsUpload = true;
-            }
-
-            if (needsUpload) {
-                // Fallback to local path if available
-                const localUrl = matchedJester.local_avatar_url;
-
-                if (localUrl && localUrl.startsWith('/media')) {
-                    const cacheKey = localUrl;
-
-                    let cachedUrl = uploadedAvatarUrls.get(cacheKey);
-                    if (cachedUrl) {
-                        avatarUrl = cachedUrl;
-                        console.log(`Found in session cache: ${avatarUrl}`);
-                        try {
-                            await axios.patch(`${API_URL}/${matchedJester.id}`, { fluxer_avatar_url: avatarUrl });
-                        } catch (e) {
-                            console.error("Failed to patch DB from cache:", e.message);
-                        }
-                    } else {
-                        try {
-                            const localPath = path.resolve(__dirname, '..', 'web', '.' + localUrl);
-                            console.log(`Attempting upload from local path: ${localPath}`);
-
-                            if (fs.existsSync(localPath)) {
-                                const fileBuffer = fs.readFileSync(localPath);
-                                const fileName = path.basename(localPath);
-
-                                console.log('Searching for storage channel: jesters-image-gallery');
-                                let storageChannel = client.channels.cache.find(c => c.name === 'jesters-image-gallery');
-
-                                if (!storageChannel) {
-                                    console.warn("Could not find 'jesters-image-gallery' channel in cache!");
-                                    storageChannel = proxyChannel;
-                                }
-
-                                const attachmentMsgData = await client.rest.post(Routes.channelMessages(storageChannel.id), {
-                                    body: { content: `Avatar storage for Jester: ${matchedJester.name}` },
-                                    files: [{ name: fileName, data: fileBuffer }]
-                                });
-
-                                const attachment = attachmentMsgData.attachments && attachmentMsgData.attachments[0];
-                                if (attachment) {
-                                    avatarUrl = attachment.url;
-                                    uploadedAvatarUrls.set(cacheKey, avatarUrl);
-                                    console.log(`Uploaded and cached: ${avatarUrl}`);
-
-                                    try {
-                                        await axios.patch(`${API_URL}/${matchedJester.id}`, {
-                                            fluxer_avatar_url: avatarUrl
-                                        });
-                                        console.log('Saved Fluxer Avatar URL to database!');
-                                    } catch (dbErr) {
-                                        console.error('Failed to save avatar URL to DB:', dbErr.message);
-                                    }
-
-                                    if (storageChannel.id === proxyChannel.id) {
-                                        try {
-                                            await client.rest.delete(Routes.channelMessage(proxyChannel.id, attachmentMsgData.id));
-                                        } catch (delErr) { console.warn('Failed to delete temp message'); }
-                                    }
-                                }
-                            } else {
-                                console.warn(`Local file not found: ${localPath}`);
-                            }
-                        } catch (uploadErr) {
-                            console.error('Upload failed:', uploadErr);
-                        }
-                    }
-                }
+            if (!avatarUrl && matchedJester.avatar_url) {
+                avatarUrl = matchedJester.avatar_url.startsWith('http')
+                    ? matchedJester.avatar_url
+                    : `${API_URL.replace('/api/jesters', '')}${matchedJester.avatar_url}`;
             }
 
             console.log(`Final avatar URL sent to webhook: ${avatarUrl}`);

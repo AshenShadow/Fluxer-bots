@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialAccount
 from .models import Jester, Changelog, Report, ReportComment
 from users.models import FluxerUser
+from .api import file_to_data_uri
 
 def _get_user_display_info(fluxer_id):
     """Returns (display_name, avatar_url) for a given fluxer_id.
@@ -88,7 +89,7 @@ def create_jester(request):
             name=name,
             prefix=prefix,
             user_id=user_id,
-            avatar=avatar
+            avatar=file_to_data_uri(avatar) if avatar else None
         )
         return redirect('dashboard')
         
