@@ -175,7 +175,7 @@
                 {% for jester in jesters|slice:":3" %}
                 <div class="jester-card">
                     {% if jester.fluxer_avatar_url or jester.avatar %}
-                    <img src="{{ jester.fluxer_avatar_url|default:jester.avatar.url }}" alt="{{ jester.name }}"
+                    <img src="{{ jester.avatar_url }}" alt="{{ jester.name }}"
                         class="jester-avatar" style="border: 2px solid rgba(155, 89, 182, 0.4);">
                     {% else %}
                     <div class="jester-placeholder"
