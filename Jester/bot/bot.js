@@ -871,6 +871,13 @@ const handleMessage = async (message) => {
                     } catch (e) {
                         console.error('Failed to send timeout warning message:', e.message);
                     }
+                } else {
+                    try {
+                        const errMsg = await proxyChannel.send(`❌ **Proxy Error:** <@${message.author.id}>, failed to send your message as \`${matchedJester.name}\`. Error: \`${webhookErr.message || 'Unknown'}\`. Please check my permissions (Manage Webhooks/Messages)!`);
+                        setTimeout(() => errMsg.delete().catch(() => { }), 15000);
+                    } catch (e) {
+                        console.error('Failed to send webhook generic error warning message:', e.message);
+                    }
                 }
             }
 
@@ -879,16 +886,23 @@ const handleMessage = async (message) => {
             // Catch edge cases where FluxerAPIError bubbles up
             const errStatus = err.status || err.statusCode;
             const errCode = err.code || (err.rawError ? err.rawError.code : null);
-            if (errStatus === 504 || errCode === 'GATEWAY_TIMEOUT' || errCode === 504 || err.message?.includes('Gateway timeout')) {
-                try {
-                    const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
-                    if (proxyChannel) {
+            
+            try {
+                const proxyChannel = message.channel || await message.resolveChannel().catch(() => null);
+                if (proxyChannel) {
+                    if (errStatus === 504 || errCode === 'GATEWAY_TIMEOUT' || errCode === 504 || err.message?.includes('Gateway timeout')) {
                         const errMsg = await proxyChannel.send(`⚠️ **Jester Timeout:** <@${message.author.id}>, your message as \`${matchedJester?.name || 'Unknown'}\` encountered a 504 Gateway Timeout.`);
                         setTimeout(() => errMsg.delete().catch(() => { }), 15000);
+                    } else if (errStatus === 403 || errCode === 50013 || err.message?.toLowerCase().includes('missing access') || err.message?.toLowerCase().includes('permission')) {
+                        const errMsg = await proxyChannel.send(`❌ **Missing Permissions:** <@${message.author.id}>, I tried to proxy your message as \`${matchedJester?.name || 'Unknown'}\`, but I don't have the **Manage Webhooks** and **Manage Messages** permissions in this channel!`);
+                        setTimeout(() => errMsg.delete().catch(() => { }), 20000);
+                    } else {
+                        const errMsg = await proxyChannel.send(`❌ **Proxy Error:** <@${message.author.id}>, I couldn't proxy your message as \`${matchedJester?.name || 'Unknown'}\` due to an error: \`${err.message || 'Unknown'}\`. Please make sure I have **Manage Webhooks** and **Manage Messages** permissions!`);
+                        setTimeout(() => errMsg.delete().catch(() => { }), 15000);
                     }
-                } catch (sendErr) {
-                    console.error('Also failed to send generic timeout warning:', sendErr.message);
                 }
+            } catch (sendErr) {
+                console.error('Failed to send error warning message:', sendErr.message);
             }
         }
     }
