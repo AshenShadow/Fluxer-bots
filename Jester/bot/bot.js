@@ -841,6 +841,12 @@ const handleMessage = async (message) => {
                     await message.delete();
                 } catch (delErr) {
                     console.warn('Failed to delete original message:', delErr.message);
+                    try {
+                        const errMsg = await proxyChannel.send(`⚠️ **Minor Error:** <@${message.author.id}>, I successfully proxied your message, but I couldn't delete your original command! Please make sure I have the **Manage Messages** permission!`);
+                        setTimeout(() => errMsg.delete().catch(() => { }), 15000);
+                    } catch (e) {
+                        console.error('Failed to send delete error warning:', e.message);
+                    }
                 }
 
                 // Increment message count in DB
